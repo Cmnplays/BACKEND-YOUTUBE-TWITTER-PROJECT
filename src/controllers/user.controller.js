@@ -1,5 +1,5 @@
 import asyncHandler from "../utils/asyncHandler.js"
-import apiError from "../utils/ApiError"
+import apiError from "../utils/apiError.js"
 import {User} from "../models/user.model.js"
 import uploadOnCloudinary from "../utils/cloudinary.js"
 import apiResponse from "../utils/apiResponse.js"
@@ -25,7 +25,7 @@ const registerUser = asyncHandler(async (req,res)=>{
     }
     
     //* checking format of the email
-    if(!!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
         throw new apiError(422, "please enter a valid email address")
     }
 
