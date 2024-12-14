@@ -55,7 +55,7 @@ const registerUser = asyncHandler(async (req,res)=>{
     //*creating user
     const user =await User.create({
         fullName,
-        avatar: avatar.url,
+        avatar: avatarCloudinaryPath.url,
         coverImage: coverImageCloudinaryPath?.url || "",
         email: email.toLowerCase(),
         username: username.toLowerCase(),
@@ -64,7 +64,7 @@ const registerUser = asyncHandler(async (req,res)=>{
 
     const createdUser = await User.findById(user._id).select("-password -refreshToken")
 
-    if (createdUser) {
+    if (!createdUser) {
         throw new apiError(500, "Error while registering user")
     }
 
