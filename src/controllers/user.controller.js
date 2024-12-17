@@ -3,7 +3,7 @@ import apiError from "../utils/apiError.js"
 import {User} from "../models/user.model.js"
 import uploadOnCloudinary from "../utils/cloudinary.js"
 import apiResponse from "../utils/apiResponse.js"
-
+import { jwt } from "jsonwebtoken"
 const generateAccessAndRefreshTokens = async (userId)=>{
     try {
         const user = await User.findById(userId)
@@ -16,7 +16,6 @@ const generateAccessAndRefreshTokens = async (userId)=>{
         throw new apiError(500, error.message)
     }
 }
-
 
 const registerUser = asyncHandler(async (req,res)=>{
     const {
@@ -169,5 +168,49 @@ const logoutUser = asyncHandler(async (req,res)=>{
    )
 })
 
+const refreshAccessToken = asyncHandler(async (req, res)=>{
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken//for mobile app
 
-export {registerUser, loginUser, logoutUser}
+    if (!incomingRefreshToken) {
+        throw new apiError(401, "Unauthorized request")
+    }
+  try {
+      const decodedTokenInfo = await jwt.verify(
+          incomingRefreshToken, 
+          process.env.REFRESH_TOKEN_SECRET
+      )
+      const user = await User.findById(decodedTokenInfo?._id)
+  
+      if (!user) {
+          throw new apiError(401, "Invalid refresh token")
+      }
+  
+      if (incomingRefreshToken !== user?.refreshToken) {
+          throw new apiError(401, "Refresh token is expired or used")
+      }
+  
+      const {accessToken, refreshToken}= generateAccessAndRefreshTokens(user._id)
+      const options ={
+          httpOnly : true,
+          secure: true
+      }
+  
+      return res
+      .status(200)
+      .cookie("accessToken", accessToken,options)
+      .cookie("refreshToken",refreshToken, options)
+      .json(
+          new apiResponse(200,
+              {
+                  accessToken,
+                  refreshToken
+              },
+              "Access token refreshed"
+          )
+      )
+  } catch (error) {
+    throw new apiError(401, error?.message)
+  }
+
+})
+export {registerUser, loginUser, logoutUser,refreshAccessToken}
