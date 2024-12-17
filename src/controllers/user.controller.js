@@ -8,9 +8,6 @@ const generateAccessAndRefreshTokens = async (userId)=>{
     try {
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
-        console.log({
-            accessToken
-        })
         const refreshToken =user.generateRefreshToken()
         user.refreshToken = refreshToken
         await user.save({validateBeforeSave : false})
@@ -101,7 +98,11 @@ const registerUser = asyncHandler(async (req,res)=>{
 })
 
 const loginUser = asyncHandler( async (req,res)=>{
-    const {username, email, password} = req.body;
+    const {
+         username,
+         email,
+         password
+    } = req.body;
     if (!(username || email)) {
         throw new apiError(400, "Username or email is missing")
     }
