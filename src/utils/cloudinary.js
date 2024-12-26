@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
+import apiError from "./apiError.js"
 import fs from "fs"
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -10,8 +11,7 @@ cloudinary.config({
 const uploadOnCloudinary=async (localFilePath)=>{
     try {
         if (!localFilePath) {
-            console.log("file path not correct")
-            return null
+            console.error("file path not correct")
         }
         const uploadRes=await cloudinary.uploader.upload(localFilePath, {
             resource_type: "auto"
@@ -22,6 +22,20 @@ const uploadOnCloudinary=async (localFilePath)=>{
     } catch (error) {
         fs.unlinkSync(localFilePath)
         return null
+    }
+}
+
+export const deleteFromCloudinary = async (publicFilePath) => {
+    if (!publicFilePath) {
+        console.log("file path not correct")
+        return null
+    }
+    const deleteRes = await cloudinary.uploader.destroy(publicFilePath)
+    if(!deleteRes){
+        console.error("Internal server Problem in deleting file from cloudinary")
+    }else{
+        console.log("file is deleted from cloudinary ", publicFilePath)
+        return deleteRes
     }
 }
 
