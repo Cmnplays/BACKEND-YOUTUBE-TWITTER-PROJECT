@@ -36,5 +36,39 @@ router
 .route("/refresh-token")
 .post(refreshAccessToken)
 
+router
+.route("/change-password")
+.post(
+    verifyJwt,
+    changeCurrentPassword
+)
 
+router
+.route("/current-user")
+.post(verifyJwt, getCurrentUser)
+
+router
+.route("/update-account")
+.patch(verifyJwt,
+    updateAccountDetails
+)
+
+router
+.route("/avater")
+.patch(verifyJwt, upload.single("avatar"),updateAvatar)
+
+router
+.route("/cover-image")
+.patch(verifyJwt, upload.single("coverImage"))
+
+router
+.route("/channel/:username")
+.get(
+    verifyJwt,
+    getUserChannelProfile
+)
+
+router
+.route("/history")
+.get(verifyJwt, getWatchHistory)
 export default router
