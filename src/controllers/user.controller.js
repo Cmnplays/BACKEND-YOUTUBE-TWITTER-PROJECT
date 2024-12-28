@@ -5,6 +5,7 @@ import uploadOnCloudinary from "../utils/cloudinary.js"
 import apiResponse from "../utils/apiResponse.js"
 import jwt from "jsonwebtoken"
 import deleteFromCloudinary from "../utils/cloudinary.js"
+import mongoose from "mongoose"
 const generateAccessAndRefreshTokens = async (userId)=>{
     try {
         const user = await User.findById(userId)
@@ -146,8 +147,8 @@ const logoutUser = asyncHandler(async (req,res)=>{
    await User.findByIdAndUpdate(
     userId,
     {
-        $set: {
-            refreshToken: undefined
+        $unset: {
+            refreshToken: 1
         }
     },
     {
@@ -400,10 +401,15 @@ const getWatchHistory = asyncHandler(async(req,res)=>{
             "Invalid user id"
         )
     }
+    if(!mongoose.isValidObjectId(userId)){
+        throw new apiError(400,
+            "Invalid user id"
+        )
+    }
     const user = await User.aggregate([
         {
             $match:{
-                _id: new mongoose.Types.ObjectId(userId)
+                _id: new mongoose.mongo.ObjectId(userId)
             }
         },
         {
@@ -428,7 +434,9 @@ const getWatchHistory = asyncHandler(async(req,res)=>{
                                     }
                                 }
                             ]
-                        },
+                        }
+                    },
+                    {
                         $addFields: {
                             owner: {
                                 $first: "$owner"

@@ -3,10 +3,11 @@ const router = Router()
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJwt } from "../middlewares/auth.middleware.js"
 
-import {loginUser, logoutUser, registerUser,refreshAccessToken} from "../controllers/user.controller.js"
+import {loginUser, logoutUser, registerUser,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateAvatar,getUserChannelProfile,getWatchHistory} from "../controllers/user.controller.js"
 
 
-router.route("/register")
+router
+.route("/register")
 .post(
     upload.fields([
         {
@@ -21,7 +22,9 @@ router.route("/register")
     registerUser
 )
 
-router.route("/login").post(loginUser)
+router
+.route("/login")
+.post(loginUser)
 
 
 //*Protected routes
@@ -45,7 +48,10 @@ router
 
 router
 .route("/current-user")
-.post(verifyJwt, getCurrentUser)
+.post(
+    verifyJwt, 
+    getCurrentUser
+)
 
 router
 .route("/update-account")
@@ -54,12 +60,19 @@ router
 )
 
 router
-.route("/avater")
-.patch(verifyJwt, upload.single("avatar"),updateAvatar)
+.route("/update-avater")
+.patch(
+     verifyJwt,
+     upload.single("avatar"),
+     updateAvatar
+    )
 
 router
 .route("/cover-image")
-.patch(verifyJwt, upload.single("coverImage"))
+.patch(
+    verifyJwt,
+     upload.single("coverImage")
+    )
 
 router
 .route("/channel/:username")
@@ -70,5 +83,8 @@ router
 
 router
 .route("/history")
-.get(verifyJwt, getWatchHistory)
+.get(
+    verifyJwt,
+    getWatchHistory
+    )
 export default router
