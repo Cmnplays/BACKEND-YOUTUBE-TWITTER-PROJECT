@@ -406,16 +406,13 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 
 const getWatchHistory = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  if (!userId) {
-    throw new apiError(400, 'Invalid user id');
-  }
-  if (!mongoose.isValidObjectId(userId)) {
+  if (!userId || !mongoose.isValidObjectId(userId)) {
     throw new apiError(400, 'Invalid user id');
   }
   const user = await User.aggregate([
     {
       $match: {
-        _id: new mongoose.mongo.bjectId(userId)
+        _id: new mongoose.Types.ObjectId(userId)
       }
     },
     {
