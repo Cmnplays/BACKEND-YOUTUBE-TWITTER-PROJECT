@@ -1,8 +1,8 @@
 import asyncHandler from '../utils/asyncHandler.js';
-import apiError from '../utils/apiError.js';
+import { apiError } from '../utils/apiError.js';
 import { User } from '../models/user.model.js';
 import uploadOnCloudinary from '../utils/cloudinary.js';
-import apiResponse from '../utils/apiResponse.js';
+import { apiResponse } from '../utils/apiResponse.js';
 import jwt from 'jsonwebtoken';
 import deleteFromCloudinary from '../utils/cloudinary.js';
 import mongoose from 'mongoose';
@@ -382,13 +382,13 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     {
       $project: {
         fullName: 1,
+        email: 1,
         username: 1,
         subscribersCount: 1,
         channelIsSubscribedToCount: 1,
         isSubscribed: 1,
         avatar: 1,
-        coverImage: 1,
-        email: 1
+        coverImage: 1
       }
     }
   ]);
@@ -415,7 +415,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {
       $match: {
-        _id: new mongoose.mongo.ObjectId(userId)
+        _id: new mongoose.mongo.bjectId(userId)
       }
     },
     {
