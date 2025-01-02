@@ -8,7 +8,23 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-  //TODO: get all videos based on query, sort, pagination
+  page = Number(page);
+  if (!sortBy) {
+    sortBy = 'createdAt';
+  }
+  if (!isNaN(sortType)) {
+    sortType = 1;
+  }
+  const videos = await Video.find({
+    owner: new mongoose.Types.ObjectId(userId)
+  })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .sort({ [sortBy]: Number(sortType) });
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, videos, 'Successfully send videos'));
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
