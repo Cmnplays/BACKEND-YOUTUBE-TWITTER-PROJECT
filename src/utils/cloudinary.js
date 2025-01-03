@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from 'cloudinary';
-import apiError from './apiError.js';
 import fs from 'fs';
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -7,10 +6,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+export const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) {
       console.error('file path not correct');
+      return null;
     }
     const uploadRes = await cloudinary.uploader.upload(localFilePath, {
       resource_type: 'auto'
@@ -37,5 +37,3 @@ export const deleteFromCloudinary = async (publicFilePath) => {
     return deleteRes;
   }
 };
-
-export default uploadOnCloudinary;
