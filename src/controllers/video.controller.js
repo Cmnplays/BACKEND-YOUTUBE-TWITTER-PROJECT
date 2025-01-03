@@ -15,21 +15,81 @@ const getAllVideos = asyncHandler(async (req, res) => {
   if (!isNaN(sortType)) {
     sortType = 1;
   }
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    return new apiError(400, 'Invalid user id');
+  }
+
   const videos = await Video.find({
     owner: new mongoose.Types.ObjectId(userId)
   })
-    .skip((page - 1) * limit)
-    .limit(limit)
+    .skip((Number(page) - 1) * limit)
+    .limit(Number(limit))
     .sort({ [sortBy]: Number(sortType) });
 
   return res
     .status(200)
     .json(new apiResponse(200, videos, 'Successfully send videos'));
+
+  //TODO1: writing logic for the query part
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
-  // TODO: get video, upload to cloudinary, create video
+  let videoLocalObj;
+  let thumbnailLocalObj;
+  if (!title) {
+    throw new apiError(400, 'Title is missing');
+  }
+  if (!description) {
+    throw new apiError(400, 'Description is missing');
+  }
+  if (!req.files) {
+    throw new apiError(400, 'Thumbnail and video are missing');
+  }
+  if (
+    req.files &&
+    Array.isArray(req.files.videoFile) &&
+    req.files.videoFile.length > 0
+  ) {
+    videoLocalObj = req.files.videoFile[0];
+  }
+
+  if (
+    req.files &&
+    Array.isArray(req.files.thumbnail) &&
+    req.files.thumbnail.length > 0
+  ) {
+    thumbnailLocalObj = req.files.thumbnail[0];
+  }
+
+  if (!thumbnailLocalObj || !videoLocalObj) {
+    throw new apiError(400, 'Thumbnail or video is missing');
+  }
+  const videoCloudObj = await uploadOnCloudinary(videoLocalObj.path);
+  const thumbnailCloudObj = await uploadOnCloudinary(thumbnailLocalObj.path);
+  if (!videoCloudObj || !thumbnailCloudObj) {
+    throw new apiError(
+      500,
+      'Failed to upload video or thumbnail to Cloudinary'
+    );
+  }
+  const video = await Video.create({
+    videoFile: videoCloudObj.url,
+    thumbnail: thumbnailCloudObj.url,
+    title,
+    description,
+    duration: videoCloudObj.duration,
+    owner: req.user._id
+  });
+  if (!video) {
+    throw new apiError(
+      500,
+      'There is a problem while uploading the video, please try again later!'
+    );
+  }
+  return res
+    .status(201)
+    .json(new apiResponse(201, video, 'Successfully uploaded video.'));
 });
 
 const getVideoById = asyncHandler(async (req, res) => {
