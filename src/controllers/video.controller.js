@@ -1,4 +1,3 @@
-import mongoose, { isValidObjectId } from "mongoose";
 import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
 import { apiError } from "../utils/apiError.js";
@@ -16,18 +15,76 @@ const getAllVideos = asyncHandler(async (req, res) => {
     sortType,
     userId
   } = req.query;
+
   if (!isNaN(page)) {
     page = 1;
   }
+
   if (!isNaN(limit)) {
     limit = 10;
   }
+
   if (!isValidObjectId(userId)) {
     userId = null;
   }
-  if (query !== "title" || "description" || "") {
+
+  if (query !== "title" && query !== "description" && query !== "") {
     query = "";
   }
+
+  if (sortBy !== "title" && sortBy !== "createdAt" && sortBy !== "updatedAt") {
+    sortBy = "createdAt";
+  }
+
+  if (sortType === "asc") {
+    sortType = 1;
+  } else if (sortType === "desc") {
+    sortType = -1;
+  } else {
+    sortType = 1;
+  }
+  const skip = (page - 1) * limit;
+  const videos = await Video.aggregate([
+    {
+      $match: {
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { description: { $regex: query, $options: "i" } }
+        ]
+      }
+    },
+    {
+      $sort: { [sortBy]: sortType }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limit
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              email: 1,
+              avatar: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $addFields: {
+        owner: { $first: "$owner" }
+      }
+    }
+  ]);
 
   return res
     .status(200)
