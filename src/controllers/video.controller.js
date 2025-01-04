@@ -3,8 +3,12 @@ import { User } from "../models/user.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary
+} from "../utils/cloudinary.js";
 import mongoose, { isValidObjectId } from "mongoose";
+import fs from "fs";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   let {
@@ -111,6 +115,17 @@ const publishAVideo = asyncHandler(async (req, res) => {
   if (!req.files) {
     throw new apiError(400, "Thumbnail and video are missing");
   }
+  const isVideoExisting = await Video.findOne({
+    $or: [{ title }, { description }]
+  });
+  if (isVideoExisting) {
+    await fs.promises.unlink(req.files.videoFile[0].path);
+    await fs.promises.unlink(req.files.thumbnail[0].path);
+    throw new apiError(
+      400,
+      "A video with the same title or description exists"
+    );
+  }
   if (
     req.files &&
     Array.isArray(req.files.videoFile) &&
@@ -197,7 +212,7 @@ const getVideoById = asyncHandler(async (req, res) => {
   if (!video || video.length === 0) {
     throw new apiError(
       404,
-      "There is a problem while fetching video, please try again later!"
+      "No video found with the provided id, please try again later!"
     );
   }
 
@@ -206,20 +221,29 @@ const getVideoById = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, video, "Successfully send video"));
 });
 
-const updateVideoDetails = asyncHandler(async (req, res) => {
+const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  let thumbnailLocalObj;
-
   const { title, description } = req.body;
+  console.log(req.file);
   if (!req.file) {
     throw new apiError(400, "thumbnail is missing");
   }
-  thumbnailLocalObj = req.file;
-
+  let thumbnailLocalObj = req.file;
   if (!title || !description || !thumbnailLocalObj) {
     throw new apiError(400, "Some fields are missing");
   }
-
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new apiError(
+      404,
+      "There is a problem while fetching the video, please try again later!"
+    );
+  }
+  const oldThumbnailCloudUrl = video.thumbnail;
+  const deleteResponse = await deleteFromCloudinary(oldThumbnailCloudUrl);
+  if (!deleteResponse) {
+    throw new apiError(500, "Failed to delete thumbnail from Cloudinary");
+  }
   const thumbnailCloudObj = await uploadOnCloudinary(thumbnailLocalObj.path);
   if (!thumbnailCloudObj) {
     throw new apiError(500, "Failed to upload thumbnail to Cloudinary");
@@ -229,25 +253,44 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
     description,
     thumbnail: thumbnailCloudObj.url
   };
-  const video = await Video.findByIdAndUpdate(videoId, updatableFields);
-  if (!video) {
-    throw new apiError(
-      404,
-      "There is a problem while updating the video, please try again later!"
-    );
-  }
+  const updatedVideo = await Video.findByIdAndUpdate(videoId, updatableFields, {
+    new: true
+  });
   return res
     .status(200)
-    .json(new apiResponse(200, video, "Successfully updated video"));
+    .json(new apiResponse(200, updatedVideo, "Successfully updated video"));
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: delete video
+  if (!videoId) {
+    throw new apiError(400, "Invalid video id");
+  }
+  const video = await Video.findByIdAndDelete(videoId);
+  const videoCloudUrl = video.videoFile;
+  const deleteRes = await deleteFromCloudinary(videoCloudUrl);
+  if (!deleteRes) {
+    throw new apiError(500, "Failed to delete video from Cloudinary");
+  }
+  return res
+    .status(200)
+    .json(new apiResponse(200, null, "Successfully deleted video"));
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  if (!videoId) {
+    throw new apiError(400, "Invalid video id");
+  }
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new apiError(404, "No video found with the provided id");
+  }
+  video.isPublished = !video.isPublished;
+  await video.save();
+  return res
+    .status(200)
+    .json(new apiResponse(200, video, "Successfully toggled publish status"));
 });
 
 export {
