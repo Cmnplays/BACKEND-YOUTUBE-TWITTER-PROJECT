@@ -4,7 +4,7 @@ import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   let {
@@ -86,6 +86,13 @@ const getAllVideos = asyncHandler(async (req, res) => {
     }
   ]);
 
+  if (!videos || videos.length === 0) {
+    throw new apiError(
+      500,
+      "There is a problem while fetching videos, please try again later!"
+    );
+  }
+
   return res
     .status(200)
     .json(new apiResponse(200, videos, "Successfully send videos"));
@@ -152,12 +159,86 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: get video by id
+  if (!isValidObjectId(videoId)) {
+    throw new apiError(400, "Invalid video id");
+  }
+  const video = await Video.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(videoId)
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              email: 1,
+              avatar: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $addFields: {
+        owner: {
+          $first: "$owner"
+        }
+      }
+    }
+  ]);
+
+  if (!video || video.length === 0) {
+    throw new apiError(
+      404,
+      "There is a problem while fetching video, please try again later!"
+    );
+  }
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, video, "Successfully send video"));
 });
 
-const updateVideo = asyncHandler(async (req, res) => {
+const updateVideoDetails = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: update video details like title, description, thumbnail
+  let thumbnailLocalObj;
+
+  const { title, description } = req.body;
+  if (!req.file) {
+    throw new apiError(400, "thumbnail is missing");
+  }
+  thumbnailLocalObj = req.file;
+
+  if (!title || !description || !thumbnailLocalObj) {
+    throw new apiError(400, "Some fields are missing");
+  }
+
+  const thumbnailCloudObj = await uploadOnCloudinary(thumbnailLocalObj.path);
+  if (!thumbnailCloudObj) {
+    throw new apiError(500, "Failed to upload thumbnail to Cloudinary");
+  }
+  const updatableFields = {
+    title,
+    description,
+    thumbnail: thumbnailCloudObj.url
+  };
+  const video = await Video.findByIdAndUpdate(videoId, updatableFields);
+  if (!video) {
+    throw new apiError(
+      404,
+      "There is a problem while updating the video, please try again later!"
+    );
+  }
+  return res
+    .status(200)
+    .json(new apiResponse(200, video, "Successfully updated video"));
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
