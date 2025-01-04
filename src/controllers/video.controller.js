@@ -114,11 +114,15 @@ const publishAVideo = asyncHandler(async (req, res) => {
   if (!req.files) {
     throw new apiError(400, "Thumbnail and video are missing");
   }
+  if (!req.files.videoFile || !req.files.thumbnail) {
+    throw new apiError(400, "Video or thumbnail is missing");
+  }
   const isVideoExisting = await Video.findOne({
     $or: [{ title }, { description }]
   });
+  console.log({ files: req.files });
   if (isVideoExisting) {
-    await fs.promises.unlink(req.files.videoFile[0].path);
+    await fs.promises.unlink(req.files.videoFile[0]?.path);
     await fs.promises.unlink(req.files.thumbnail[0].path);
     throw new apiError(
       400,
