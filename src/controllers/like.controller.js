@@ -4,11 +4,17 @@ import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Video } from "../models/video.model.js";
+import { Comment } from "../models/comment.model.js";
+import { Tweet } from "../models/tweet.model.js";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   if (!videoId) {
     throw new apiError(400, "Video ID is required");
+  }
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new apiError(404, "Video not found");
   }
   const userId = req.user._id;
   let like = await Like.findOne({
@@ -40,6 +46,10 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     throw new apiError(400, "Comment ID is required");
   }
   const userId = req.user._id;
+  const comment = await Comment.findById(commentId);
+  if (!comment) {
+    throw new apiError(404, "Comment not found");
+  }
   let like = await Like.findOne({
     comment: commentId,
     likedBy: userId
@@ -67,6 +77,10 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
   if (!commentId) {
     throw new apiError(400, "Tweet ID is required");
+  }
+  const tweet = await Tweet.findById(tweetId);
+  if (!tweet) {
+    throw new apiError(404, "Video not found");
   }
   const userId = req.user._id;
   let like = await Like.findOne({
@@ -108,7 +122,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         from: "videos",
         localField: "video",
         foreignField: "_id",
-        as: "likedVideos",
+        as: "likedVideo",
         pipeline: [
           {
             $lookup: {
@@ -122,15 +136,15 @@ const getLikedVideos = asyncHandler(async (req, res) => {
                     avatar: 1,
                     username: 1
                   }
-                },
-                {
-                  $addFields: {
-                    owner: {
-                      $arrayElemAt: ["$owner", 0]
-                    }
-                  }
                 }
               ]
+            }
+          },
+          {
+            $addFields: {
+              owner: {
+                $arrayElemAt: ["$owner", 0]
+              }
             }
           },
           {
@@ -147,19 +161,18 @@ const getLikedVideos = asyncHandler(async (req, res) => {
       }
     },
     {
-      $project: {
-        likedVideos: 1
+      $addFields: {
+        likedVideo: {
+          $first: "$likedVideo"
+        }
       }
     },
     {
-      $addFields: {
-        likedVideos: {
-          $arrayElemAt: ["$likedVideos", 0] // (i cannot write dollar here)first: "$likedVideos"
-        }
+      $project: {
+        likedVideo: 1
       }
     }
   ]);
-
   if (!likedVideos || likedVideos.length === 0) {
     return res
       .status(200)
