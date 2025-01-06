@@ -3,7 +3,7 @@ import { Comment } from "../models/comment.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import Video from "../models/video.model.js";
+import { Video } from "../models/video.model.js";
 
 const getVideoComments = asyncHandler(async (req, res) => {
   //TODO: get all comments for a video
@@ -28,11 +28,18 @@ const getVideoComments = asyncHandler(async (req, res) => {
         pipeline: [
           {
             $project: {
-              username: 1,
-              avatar: 1
+              avatar: 1,
+              username: 1
             }
           }
         ]
+      }
+    },
+    {
+      $project: {
+        content: 1,
+        owner: 1,
+        video: 1
       }
     },
     {
@@ -56,12 +63,14 @@ const getVideoComments = asyncHandler(async (req, res) => {
   if (comments.length === 0) {
     return res
       .status(200)
-      .json(apiResponse(200, comments, "There are no comments on this video"));
+      .json(
+        new apiResponse(200, comments, "There are no comments on this video")
+      );
   }
 
   return res
     .status(200)
-    .json(apiResponse(200, comments, "Successfully fetched comments"));
+    .json(new apiResponse(200, comments, "Successfully fetched comments"));
 });
 
 const addComment = asyncHandler(async (req, res) => {
@@ -69,23 +78,60 @@ const addComment = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { content } = req.body;
   if (!content) {
-    throw apiError(400, "content is required");
+    throw new apiError(400, "content is required");
   }
   const video = await Video.findById(videoId);
   if (!video) {
-    throw apiError(404, "Video not found");
+    throw new apiError(404, "Video not found");
   }
-  const comment = await Comment.create({
+  if (!isValidObjectId(videoId)) {
+    throw new apiError("Invalid video id");
+  }
+  const createdComment = await Comment.create({
     content,
     video: videoId,
     owner: userId
   });
-  if (!comment) {
-    throw apiError(500, "Failed to add comment");
+  if (!createdComment) {
+    throw new apiError(500, "Failed to add comment");
+  }
+  const aggregatedComment = await Comment.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(createdComment._id)
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              avatar: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $unwind: {
+        path: "$owner",
+        preserveNullAndEmptyArrays: true
+      }
+    }
+  ]);
+  if (!aggregatedComment) {
+    throw new apiError(500, "Failed to aggregate comment");
   }
   return res
     .status(201)
-    .json(new apiResponse(201, comment, "Comment added successfully"));
+    .json(
+      new apiResponse(201, aggregatedComment, "Comment added successfully")
+    );
 });
 
 const updateComment = asyncHandler(async (req, res) => {
@@ -97,28 +143,61 @@ const updateComment = asyncHandler(async (req, res) => {
   if (!commentId || !isValidObjectId(commentId)) {
     throw apiError(400, "Invalid commentId");
   }
-  const comment = await Comment.aggregate([
+  const updatedComment = await Comment.findByIdAndUpdate(
+    commentId,
+    {
+      content: newContent
+    },
+    {
+      new: true
+    }
+  );
+
+  if (!updatedComment) {
+    throw new apiError(404, "Comment not found or could not be updated");
+  }
+
+  const aggregatedComment = await Comment.aggregate([
     {
       $match: {
-        _id: new mongoose.Types.ObjectId(commentId)
+        _id: new mongoose.Types.ObjectId(updatedComment._id)
       }
     },
     {
-      $set: {
-        content: newContent
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              avatar: 1
+            }
+          }
+        ]
       }
     },
     {
-      $new: true
+      $unwind: {
+        path: "$owner",
+        preserveNullAndEmptyArrays: true
+      }
     }
   ]);
 
-  if (!comment) {
-    throw new apiError(500, "There was a problem while updating the comment");
+  if (!aggregatedComment) {
+    throw new apiError(
+      500,
+      "There was a problem while aggregating the comment"
+    );
   }
   return res
     .status(200)
-    .json(new apiResponse(200, comment, "Successfully updated comment"));
+    .json(
+      new apiResponse(200, aggregatedComment, "Successfully updated comment")
+    );
 });
 
 const deleteComment = asyncHandler(async (req, res) => {

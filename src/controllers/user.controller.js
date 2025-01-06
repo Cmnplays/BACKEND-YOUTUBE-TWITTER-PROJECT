@@ -6,6 +6,7 @@ import { apiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
+
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -283,11 +284,17 @@ const updateAvatar = asyncHandler(async (req, res) => {
   if (!avatarLocalPath) {
     throw new apiError(400, "Avatar file missing");
   }
+  const user = await User.findById(req.user._id);
+  const oldCloudinaryAvatarPath = user.avatar;
+  const deleteAvatarRes = await deleteFromCloudinary(oldCloudinaryAvatarPath);
+  if (!deleteAvatarRes) {
+    throw new apiError(500, " Unable to delete avatar from cloudinary");
+  }
   const avatarCloudinaryPath = await uploadOnCloudinary(avatarLocalPath);
   if (!avatarCloudinaryPath) {
     throw new apiError(500, "Error while uploading avatar on cloudinary");
   }
-  const user = await user
+  const updatedUser = await user
     .findByIdAndUpdate(
       req.user?._id,
       {
@@ -303,7 +310,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json(new apiResponse(200, user, "Successfully updated avatar"));
+    .json(new apiResponse(200, updatedUser, "Successfully updated avatar"));
 });
 
 const updateCoverImage = asyncHandler(async (req, res) => {
@@ -311,12 +318,21 @@ const updateCoverImage = asyncHandler(async (req, res) => {
   if (!coverImageLocalPath) {
     throw new apiError(400, "coverImage file missing");
   }
+
+  const user = await User.findById(req.user._id);
+  const oldCloudinaryCoverImagePath = user.avatar;
+  const deleteCoverImageRes = await deleteFromCloudinary(
+    oldCloudinaryCoverImagePath
+  );
+  if (!deleteCoverImageRes) {
+    throw new apiError(500, " Unable to delete avatar from cloudinary");
+  }
   const coverImageCloudinaryPath =
     await uploadOnCloudinary(coverImageLocalPath);
   if (!coverImageCloudinaryPath) {
     throw new apiError(500, "Error while uploading avatar on cloudinary");
   }
-  const user = await user
+  const updatedUser = await user
     .findByIdAndUpdate(
       req.user?._id,
       {
@@ -332,7 +348,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json(new apiResponse(200, user, "Successfully updated coverImage"));
+    .json(new apiResponse(200, updatedUser, "Successfully updated coverImage"));
 });
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
