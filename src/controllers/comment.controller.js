@@ -143,6 +143,10 @@ const updateComment = asyncHandler(async (req, res) => {
   if (!commentId || !isValidObjectId(commentId)) {
     throw apiError(400, "Invalid commentId");
   }
+  const existingComment = await Comment.findById(commentId);
+  if (!existingComment) {
+    throw new apiError(400, "No comment found with the provided id");
+  }
   const updatedComment = await Comment.findByIdAndUpdate(
     commentId,
     {
