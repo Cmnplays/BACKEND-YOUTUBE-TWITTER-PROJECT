@@ -187,6 +187,9 @@ const updateTweet = asyncHandler(async (req, res) => {
 const deleteTweet = asyncHandler(async (req, res) => {
   const tweetId = req.params.tweetId
   const deletedTweet = await Tweet.findByIdAndDelete(tweetId)
+  if(!deleteTweet){
+    throw new apiError(400, "There was a problem while deleting the tweet")
+  }
   return res
   .status(200)
   .json(
