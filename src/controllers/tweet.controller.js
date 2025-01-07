@@ -132,20 +132,22 @@ const getUserTweets = asyncHandler(async (req, res) => {
 
 const updateTweet = asyncHandler(async (req, res) => {
   const tweetId = req.params.tweetId
-  const newContent = req.body;
-  if(!tweetId.trim() || !newContent.trim()){
+  const newContent = req.body.newContent;
+  if(!tweetId?.trim() || !newContent?.trim()){
     throw new apiError("Invalid tweet id or invalid new content")
   }
-  const tweet = await Tweet.findByIdAndUpdate(
+  const updatedTweet = await Tweet.findByIdAndUpdate(
     tweetId,
    { content: newContent},
    {new: true}
   )
-
+  if(!updatedTweet){
+    throw new apiError(400, "No comment found with the provided id")
+  }
   const aggregatedTweet = await Tweet.aggregate([
     {
       $match: {
-        owner: new mongoose.Types.ObjectId(createTweet._id)
+        owner: new mongoose.Types.ObjectId(updatedTweet._id)
       }
     },
     {
@@ -180,14 +182,14 @@ const updateTweet = asyncHandler(async (req, res) => {
   return res
   .status(200)
   .json(
-    new apiResponse(200, aggregatedTweet, "Successfully aggragated tweet")
+    new apiResponse(200, aggregatedTweet, "Successfully updated tweet")
   )
 })
 
 const deleteTweet = asyncHandler(async (req, res) => {
   const tweetId = req.params.tweetId
   const deletedTweet = await Tweet.findByIdAndDelete(tweetId)
-  if(!deleteTweet){
+  if(!deletedTweet){
     throw new apiError(400, "There was a problem while deleting the tweet")
   }
   return res
