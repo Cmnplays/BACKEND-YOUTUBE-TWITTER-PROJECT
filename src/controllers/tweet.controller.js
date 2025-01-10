@@ -11,21 +11,23 @@ const createTweet = asyncHandler(async (req, res) => {
     throw new apiError(400, "Content is required");
   }
   const userId = req.user._id;
-  if(!isValidObjectId(userId)){
-    throw new apiError(400, "Invalid user id")
+  if (!isValidObjectId(userId)) {
+    throw new apiError(400, "Invalid user id");
   }
   const createdTweet = await Tweet.create({
     content,
     owner: userId
   });
 
-  if(!createdTweet){
-    throw new apiError(500, "There was a problem while creating tweet")
+  if (!createdTweet) {
+    throw new apiError(500, "There was a problem while creating tweet");
   }
-  const aggregatedTweet =await Tweet.aggregate([
+  const aggregatedTweet = await Tweet.aggregate([
     {
       $match: {
-        _id: new mongoose.Types.ObjectId(createdTweet._id)
+        $expr: {
+          $eq: ["$_id", { $toObjectId: createdTweet._id }]
+        }
       }
     },
     {
@@ -52,30 +54,28 @@ const createTweet = asyncHandler(async (req, res) => {
       }
     }
   ]);
-  if(!aggregatedTweet){
-    throw new apiError(500, "There was a problem while creating tweet")
+  if (!aggregatedTweet) {
+    throw new apiError(500, "There was a problem while creating tweet");
   }
 
   return res
-  .status(201)
-  .json(
-    new apiResponse(201, aggregatedTweet, "Successfully created tweet")
-  )
+    .status(201)
+    .json(new apiResponse(201, aggregatedTweet, "Successfully created tweet"));
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
-  const userId = req.params.userId
-  if(!userId || !isValidObjectId(userId)){
-    throw new apiError(400, "Invalid user id")
+  const userId = req.params.userId;
+  if (!userId || !isValidObjectId(userId)) {
+    throw new apiError(400, "Invalid user id");
   }
-  let {
-    page=1, limit=10
-  }=req.body;
-  const skip = (page-1)*limit
+  let { page = 1, limit = 10 } = req.body;
+  const skip = (page - 1) * limit;
   const tweets = await Tweet.aggregate([
     {
       $match: {
-        owner: new mongoose.Types.ObjectId(userId)
+        $expr: {
+          $eq: ["$owner", { $toObjectId: userId }]
+        }
       }
     },
     {
@@ -103,7 +103,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
     },
     {
       $sort: {
-        "createdAt":1
+        createdAt: 1
       }
     },
     {
@@ -112,42 +112,39 @@ const getUserTweets = asyncHandler(async (req, res) => {
     {
       $limit: limit
     }
-  ])
+  ]);
 
-  if(tweets.length === 0){
+  if (tweets.length === 0) {
     return res
-    .status(200)
-    .json(
-      new apiResponse(200, null, "No comments posted yet")
-    )
+      .status(200)
+      .json(new apiResponse(200, null, "No comments posted yet"));
   }
 
   return res
     .status(200)
-    .json(
-      new apiResponse(200, tweets, "Successfully fetched all tweets")
-    )
-  
+    .json(new apiResponse(200, tweets, "Successfully fetched all tweets"));
 });
 
 const updateTweet = asyncHandler(async (req, res) => {
-  const tweetId = req.params.tweetId
+  const tweetId = req.params.tweetId;
   const newContent = req.body.newContent;
-  if(!tweetId?.trim() || !newContent?.trim()){
-    throw new apiError("Invalid tweet id or invalid new content")
+  if (!tweetId?.trim() || !newContent?.trim()) {
+    throw new apiError("Invalid tweet id or invalid new content");
   }
   const updatedTweet = await Tweet.findByIdAndUpdate(
     tweetId,
-   { content: newContent},
-   {new: true}
-  )
-  if(!updatedTweet){
-    throw new apiError(400, "No comment found with the provided id")
+    { content: newContent },
+    { new: true }
+  );
+  if (!updatedTweet) {
+    throw new apiError(400, "No comment found with the provided id");
   }
   const aggregatedTweet = await Tweet.aggregate([
     {
       $match: {
-        _id: new mongoose.Types.ObjectId(updatedTweet._id)
+        $expr: {
+          $eq: ["$_id", { $toObjectId: updatedTweet._id }]
+        }
       }
     },
     {
@@ -173,30 +170,26 @@ const updateTweet = asyncHandler(async (req, res) => {
         preserveNullAndEmptyArrays: true
       }
     }
-  ])
+  ]);
 
-  if(!aggregatedTweet){
-    throw new apiError(500, "There was a problem while updating tweet")
+  if (!aggregatedTweet) {
+    throw new apiError(500, "There was a problem while updating tweet");
   }
 
   return res
-  .status(200)
-  .json(
-    new apiResponse(200, aggregatedTweet, "Successfully updated tweet")
-  )
-})
+    .status(200)
+    .json(new apiResponse(200, aggregatedTweet, "Successfully updated tweet"));
+});
 
 const deleteTweet = asyncHandler(async (req, res) => {
-  const tweetId = req.params.tweetId
-  const deletedTweet = await Tweet.findByIdAndDelete(tweetId)
-  if(!deletedTweet){
-    throw new apiError(400, "There was a problem while deleting the tweet")
+  const tweetId = req.params.tweetId;
+  const deletedTweet = await Tweet.findByIdAndDelete(tweetId);
+  if (!deletedTweet) {
+    throw new apiError(400, "There was a problem while deleting the tweet");
   }
   return res
-  .status(200)
-  .json(
-    new apiResponse(200, null,"Successfully deleted tweet")
-  )
+    .status(200)
+    .json(new apiResponse(200, null, "Successfully deleted tweet"));
 });
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };

@@ -82,7 +82,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
       {
         $match: {
           $expr: {
-            $eq: ["$_id", { $toObjectId: playlistId }]
+            $eq: ["$owner", { $toObjectId: playlistId }]
           }
         }
       },
