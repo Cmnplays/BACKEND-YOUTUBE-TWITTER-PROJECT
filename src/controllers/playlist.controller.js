@@ -74,11 +74,62 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 
 const getPlaylistById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
-  if (!playlistId) {
+  if (!playlistId || !isValidObjectId(playlistId)) {
     throw new apiError(400, "Playlist id is required");
   }
-  const playlist = await Playlist.findById(playlistId);
-  //TODO: I NEED TO AGGREGATR VIDEOS HERE
+  const playlist = await Playlist.aggregate([
+    [
+      {
+        $match: {
+          $expr: {
+            $eq: ["$_id", { $toObjectId: playlistId }]
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: "videos",
+          localField: "videos",
+          foreignField: "_id",
+          as: "videos",
+          pipeline: [
+            {
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                  {
+                    $project: {
+                      username: 1,
+                      avatar: 1,
+                      email: 1
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              $unwind: {
+                path: "$owner",
+                preserveNullAndEmptyArrays: true
+              }
+            },
+            {
+              $project: {
+                thumbnail: 1,
+                owner: 1,
+                duration: 1,
+                title: 1,
+                views: 1
+              }
+            }
+          ]
+        }
+      }
+    ]
+  ]);
   if (!playlist) {
     throw new apiError("Playlist doesn't exists");
   }
@@ -127,7 +178,6 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
-  // TODO: remove video from playlist
 });
 
 const deletePlaylist = asyncHandler(async (req, res) => {
