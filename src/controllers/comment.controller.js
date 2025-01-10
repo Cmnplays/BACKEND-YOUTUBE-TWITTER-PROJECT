@@ -16,7 +16,9 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const comments = await Comment.aggregate([
     {
       $match: {
-        video: new mongoose.Types.ObjectId(videoId)
+        $expr: {
+          $eq: ["$video", { $toObjectId: playlistId }]
+        }
       }
     },
     {
@@ -98,7 +100,9 @@ const addComment = asyncHandler(async (req, res) => {
   const aggregatedComment = await Comment.aggregate([
     {
       $match: {
-        _id: new mongoose.Types.ObjectId(createdComment._id)
+        $expr: {
+          $eq: ["$owner", { $toObjectId: createdComment._id }]
+        }
       }
     },
     {
@@ -164,7 +168,9 @@ const updateComment = asyncHandler(async (req, res) => {
   const aggregatedComment = await Comment.aggregate([
     {
       $match: {
-        _id: new mongoose.Types.ObjectId(updatedComment._id)
+        $expr: {
+          $eq: ["$_id", { $toObjectId: updatedComment._id }]
+        }
       }
     },
     {
