@@ -3,6 +3,7 @@ import { Playlist } from "../models/playlist.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ObjectId } from "mongodb";
 
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
@@ -44,9 +45,27 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
       }
     },
     {
+      $lookup: {
+        from: "videos",
+        localField: "videos",
+        foreignField: "_id",
+        as: "videos",
+        pipeline: [
+          {
+            $project: {
+              thumbnail: 1
+            }
+          }
+        ]
+      }
+    },
+    {
       $addFields: {
         numberOfVideos: {
           $size: "$videos"
+        },
+        playlistThumbnail: {
+          $first: "$videos.thumbnail"
         }
       }
     },
@@ -55,7 +74,8 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         name: 1,
         description: 1,
         numberOfVideos: 1,
-        owner: 1
+        owner: 1,
+        playlistThumbnail: 1
       }
     }
   ]);
@@ -82,7 +102,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
       {
         $match: {
           $expr: {
-            $eq: ["$owner", { $toObjectId: playlistId }]
+            $eq: ["$_id", { $toObjectId: playlistId }]
           }
         }
       },
@@ -133,6 +153,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
   if (!playlist) {
     throw new apiError("Playlist doesn't exists");
   }
+
   return res
     .status(200)
     .json(new apiResponse(200, playlist, "Successfully sent playlist"));
@@ -146,13 +167,16 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
   const existingVideoInPlaylist = await Playlist.aggregate([
     {
       $match: {
+        $expr: {
+          $eq: ["$_id", { $toObjectId: playlistId }]
+        },
         videos: {
-          $in: [new mongoose.Types.ObjectId(videoId)]
+          $in: [new ObjectId(videoId)]
         }
       }
     }
   ]);
-  if (existingVideoInPlaylist) {
+  if (existingVideoInPlaylist.length > 0) {
     throw new apiError(400, "Video already exists in playlist");
   }
   const playlist = await Playlist.findByIdAndUpdate(
@@ -178,17 +202,78 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
+  if (
+    !playlistId ||
+    !videoId ||
+    !isValidObjectId(playlistId) ||
+    !isValidObjectId(videoId)
+  ) {
+    throw new apiError(400, "Invalid playlist or videoId");
+  }
+  const playlist = await Playlist.findByIdAndUpdate(
+    playlistId,
+    {
+      $pull: {
+        videos: videoId
+      }
+    },
+    {
+      new: true
+    }
+  );
+  if (!playlist) {
+    throw new apiError(500, "There was a problem while updating playlist");
+  }
+  return res
+    .status(200)
+    .json(
+      new apiResponse(
+        200,
+        playlist,
+        "Successfully deleted video(s) from playlist"
+      )
+    );
 });
 
 const deletePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
-  // TODO: delete playlist
+  if (!playlistId || !isValidObjectId(playlistId)) {
+    throw new apiError(400, "Invalid playlist id");
+  }
+  const playlist = await Playlist.findByIdAndDelete(playlistId);
+  if (!playlist) {
+    throw new apiError(400, "No playlist found with the provided id");
+  }
+  return res
+    .status(200)
+    .json(new apiResponse(200, null, "Successfully deleted playlist"));
 });
 
 const updatePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
   const { name, description } = req.body;
-  //TODO: update playlist
+  if (
+    !playlistId ||
+    !isValidObjectId(playlistId) ||
+    !name.trim() ||
+    !description.trim()
+  ) {
+    throw new apiError(400, "Invalid playlist id");
+  }
+  const playlist = await Playlist.findByIdAndUpdate(
+    playlistId,
+    {
+      name,
+      description
+    },
+    {
+      new: true
+    }
+  );
+  if (!playlist) {
+    throw new apiError(400, "Invalid playlist id");
+  }
+  return res.status(200).json(200, playlist, "Successfully updated playlist");
 });
 
 export {
