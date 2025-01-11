@@ -15,22 +15,16 @@ const getChannelStats = asyncHandler(async (req, res) => {
       }
     }
   ]);
+  console.log(videosDetails);
   const subscribers = await Subscription.find({
     channel: channelId
     //i will aggregate all subscribers here in some time with limit of 10 or 20
   });
-  const totalLikes = await Like.aggregate([
-    {
-      video: new mongoose.Types.ObjectId(channelId)
-    }
-  ]);
-  const channelStats = await User.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(channelId)
-      }
-    }
-  ]);
+  console.log(subscribers);
+
+  // const totalLikes = await Like.aggregate([{ $match: {} }]);
+  // console.log(totalLikes);
+
   return res
     .status(200)
     .json(
