@@ -8,28 +8,13 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
   const channelId = req.user._id;
-  const videosDetails = await Video.aggregate([
-    {
-      $match: {
-        owner: new mongoose.Types.ObjectId(channelId)
-      }
-    }
-  ]);
-  console.log(videosDetails);
-  const subscribers = await Subscription.find({
-    channel: channelId
-    //i will aggregate all subscribers here in some time with limit of 10 or 20
-  });
-  console.log(subscribers);
-
-  // const totalLikes = await Like.aggregate([{ $match: {} }]);
-  // console.log(totalLikes);
 
   return res
     .status(200)
     .json(
       new apiResponse(200, channelStats, "Successfully sent channel statistics")
     );
+  // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
 });
 
 const getChannelVideos = asyncHandler(async (req, res) => {
