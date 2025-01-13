@@ -75,7 +75,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
-  if (!commentId) {
+  if (!tweetId) {
     throw new apiError(400, "Tweet ID is required");
   }
   const tweet = await Tweet.findById(tweetId);
@@ -115,7 +115,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     {
       $match: {
         $expr: {
-          $eq: ["$likedBy", { $toObjectId: playlistId }]
+          $eq: ["$likedBy", { $toObjectId: userId }]
         }
       }
     },
