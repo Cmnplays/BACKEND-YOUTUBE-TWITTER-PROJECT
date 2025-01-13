@@ -10,39 +10,24 @@ const getChannelStats = asyncHandler(async (req, res) => {
   const channelId = req.user._id;
   const { limit = 10, page = 1 } = req.body;
   const skip = (page - 1) * limit;
-  //TODO: HERE I NEED TO FETCH AND SEND JUST THE TOTAL VIEWS OF VIDEOS NOT THE TOTAL VIDEOS
-  const channelVideos = await Video.aggregate([
+  const totalChannelViews = await Video.aggregate([
     {
       $match: { owner: new mongoose.Types.ObjectId(channelId) }
     },
     {
-      $addFields: {
+      $group: {
+        _id: null,
         totalViews: {
-          $add: "$views"
+          $sum: "$views"
         }
       }
     },
     {
       $project: {
-        thumbnail: 1,
-        title: 1,
-        duration: 1,
-        views: 1
+        _id: 0
       }
-    },
-    {
-      $sort: {
-        createdAt: 1
-      }
-    },
-    {
-      $skip: skip
-    },
-    {
-      $limit: limit
     }
   ]);
-  console.log(channelVideos);
   const subscribers = await Subscription.aggregate([
     {
       $match: { channel: new mongoose.Types.ObjectId(channelId) }
@@ -71,12 +56,15 @@ const getChannelStats = asyncHandler(async (req, res) => {
       }
     },
     {
-      $lookup: {
-        from: "users",
-        localField: "subscriber.user",
-        foreignField: "_id",
-        as: "subscirber"
+      $sort: {
+        createdAt: 1
       }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limit
     },
     {
       $project: {
@@ -85,14 +73,61 @@ const getChannelStats = asyncHandler(async (req, res) => {
       }
     }
   ]);
-  console.log(subscribers);
-  let channelStats = 2;
+  const totalLikesNumber = await Like.aggregate([
+    {
+      $lookup: {
+        from: "videos",
+        localField: "video",
+        foreignField: "_id",
+        as: "videoOwner",
+        pipeline: [
+          {
+            $project: {
+              owner: 1,
+              _id: 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      $addFields: {
+        videoOwner: "$videoOwner.owner"
+      }
+    },
+    {
+      $unwind: "$videoOwner"
+    },
+    {
+      $match: {
+        videoOwner: new mongoose.Types.ObjectId(channelId)
+      }
+    },
+    {
+      $count: "totalLikes"
+    }
+  ]);
+  const totalVideosNumber = await Video.aggregate([
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(channelId)
+      }
+    },
+    {
+      $count: "totalVideos"
+    }
+  ]);
+  let channelStats = {
+    totalChannelViews: totalChannelViews[0].totalViews,
+    totalVideos: totalVideosNumber[0].totalVideos,
+    subscribers,
+    totalLikes: totalLikesNumber[0].totalLikes
+  };
   return res
     .status(200)
     .json(
       new apiResponse(200, channelStats, "Successfully sent channel statistics")
     );
-  // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
 });
 
 const getChannelVideos = asyncHandler(async (req, res) => {
