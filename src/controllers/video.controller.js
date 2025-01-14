@@ -6,7 +6,7 @@ import {
   uploadOnCloudinary,
   deleteFromCloudinary
 } from "../utils/cloudinary.js";
-import mongoose, { isValidObjectId } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import fs from "fs";
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -86,6 +86,23 @@ const getAllVideos = asyncHandler(async (req, res) => {
       $addFields: {
         owner: { $first: "$owner" }
       }
+    },
+    //Aggregating Views
+
+    {
+      $lookup: {
+        from: "views",
+        localField: "_id",
+        foreignField: "video",
+        as: "views"
+      }
+    },
+    {
+      $addFields: {
+        views: {
+          $size: "$views"
+        }
+      }
     }
   ]);
 
@@ -120,7 +137,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
   const isVideoExisting = await Video.findOne({
     $or: [{ title }, { description }]
   });
-  console.log({ files: req.files });
   if (isVideoExisting) {
     await fs.promises.unlink(req.files.videoFile[0]?.path);
     await fs.promises.unlink(req.files.thumbnail[0].path);
@@ -209,6 +225,54 @@ const getVideoById = asyncHandler(async (req, res) => {
       $addFields: {
         owner: {
           $first: "$owner"
+        }
+      }
+    },
+    //Aggregating Views
+    {
+      $lookup: {
+        from: "views",
+        localField: "_id",
+        foreignField: "video",
+        as: "views"
+      }
+    },
+    {
+      $addFields: {
+        views: {
+          $size: "$views"
+        }
+      }
+    },
+    //Aggregating Likes
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "likes"
+      }
+    },
+    {
+      $addFields: {
+        likes: {
+          $size: "$likes"
+        }
+      }
+    },
+    //Aggregating Comments
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "video",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        comments: {
+          $size: "$comments"
         }
       }
     }
