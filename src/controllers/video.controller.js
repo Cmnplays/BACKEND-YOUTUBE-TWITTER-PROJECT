@@ -6,7 +6,7 @@ import {
   uploadOnCloudinary,
   deleteFromCloudinary
 } from "../utils/cloudinary.js";
-import mongoose, { isValidObjectId } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import fs from "fs";
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -86,6 +86,14 @@ const getAllVideos = asyncHandler(async (req, res) => {
       $addFields: {
         owner: { $first: "$owner" }
       }
+    },
+    {
+      $lookup: {
+        from: "views",
+        localField: "views",
+        foreignField: "_id",
+        as: "viewsArr"
+      }
     }
   ]);
 
@@ -120,7 +128,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
   const isVideoExisting = await Video.findOne({
     $or: [{ title }, { description }]
   });
-  console.log({ files: req.files });
   if (isVideoExisting) {
     await fs.promises.unlink(req.files.videoFile[0]?.path);
     await fs.promises.unlink(req.files.thumbnail[0].path);

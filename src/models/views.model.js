@@ -14,4 +14,4 @@ const viewsSchema = new Schema(
     timestamps: true
   }
 );
-export const Views = mongoose.model("view", viewsSchema);
+export const View = mongoose.model("View", viewsSchema);
