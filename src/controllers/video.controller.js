@@ -87,12 +87,21 @@ const getAllVideos = asyncHandler(async (req, res) => {
         owner: { $first: "$owner" }
       }
     },
+    //Aggregating Views
+
     {
       $lookup: {
         from: "views",
-        localField: "views",
-        foreignField: "_id",
-        as: "viewsArr"
+        localField: "_id",
+        foreignField: "video",
+        as: "views"
+      }
+    },
+    {
+      $addFields: {
+        views: {
+          $size: "$views"
+        }
       }
     }
   ]);
@@ -216,6 +225,54 @@ const getVideoById = asyncHandler(async (req, res) => {
       $addFields: {
         owner: {
           $first: "$owner"
+        }
+      }
+    },
+    //Aggregating Views
+    {
+      $lookup: {
+        from: "views",
+        localField: "_id",
+        foreignField: "video",
+        as: "views"
+      }
+    },
+    {
+      $addFields: {
+        views: {
+          $size: "$views"
+        }
+      }
+    },
+    //Aggregating Likes
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "likes"
+      }
+    },
+    {
+      $addFields: {
+        likes: {
+          $size: "$likes"
+        }
+      }
+    },
+    //Aggregating Comments
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "video",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        comments: {
+          $size: "$comments"
         }
       }
     }
