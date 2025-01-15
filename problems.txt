@@ -33,7 +33,7 @@
     1.this controller is fully working for now but i also have to integrate views with post(tweet).
 
 
-8.Dashboard controller issues
+8.Dashboard controller issues(SOLVED)
     1.when there are no documents of total likes found then i need to send 0 as the total likes count doesnt count set number of likes to 0 if there are no documents matched.
 
 

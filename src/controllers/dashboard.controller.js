@@ -91,20 +91,28 @@ const getChannelStats = asyncHandler(async (req, res) => {
       }
     },
     {
-      $addFields: {
-        videoOwner: "$videoOwner.owner"
-      }
-    },
-    {
       $unwind: "$videoOwner"
     },
     {
       $match: {
-        videoOwner: new mongoose.Types.ObjectId(channelId)
+        "videoOwner.owner": new mongoose.Types.ObjectId(channelId)
       }
     },
     {
       $count: "totalLikes"
+    },
+    {
+      $facet: {
+        result: [{ $match: {} }],
+        default: [{ $project: { totalLikes: { $literal: 0 } } }]
+      }
+    },
+    {
+      $project: {
+        totalLikes: {
+          $ifNull: [{ $arrayElemAt: ["$result.totalLikes", 0] }, 0]
+        }
+      }
     }
   ]);
   const totalVideosNumber = await Video.aggregate([
@@ -118,24 +126,27 @@ const getChannelStats = asyncHandler(async (req, res) => {
     },
     {
       $facet: {
-        result: { $match: {} },
-        default: { $project: { totalVideos: { $literal: 0 } } }
+        result: [{ $match: {} }],
+        default: [{ $project: { totalVideos: { $literal: 0 } } }]
       }
     },
     {
       $project: {
-        $arrayElemAt: [
-          { $concatArrays: ["$result.totalLikes", "$default.totalLikes"] },
-          0
-        ]
+        totalVideos: {
+          $arrayElemAt: [
+            { $concatArrays: ["$result.totalVideos", "$default.totalVideos"] },
+            0
+          ]
+        }
       }
     }
   ]);
+  console.log({ totalVideosNumber, totalLikesNumber });
   let channelStats = {
     totalChannelViews: totalChannelViews[0].totalViews,
     totalVideos: totalVideosNumber[0].totalVideos,
-    subscribers,
-    totalLikes: totalLikesNumber[0].totalLikes
+    totalLikes: totalLikesNumber[0].totalLikes,
+    subscribers
   };
   return res
     .status(200)
