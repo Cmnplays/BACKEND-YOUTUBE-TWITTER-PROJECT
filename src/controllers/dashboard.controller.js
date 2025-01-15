@@ -115,6 +115,20 @@ const getChannelStats = asyncHandler(async (req, res) => {
     },
     {
       $count: "totalVideos"
+    },
+    {
+      $facet: {
+        result: { $match: {} },
+        default: { $project: { totalVideos: { $literal: 0 } } }
+      }
+    },
+    {
+      $project: {
+        $arrayElemAt: [
+          { $concatArrays: ["$result.totalLikes", "$default.totalLikes"] },
+          0
+        ]
+      }
     }
   ]);
   let channelStats = {
