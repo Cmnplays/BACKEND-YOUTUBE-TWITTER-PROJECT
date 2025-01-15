@@ -10,10 +10,14 @@ import mongoose from "mongoose";
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
+    if (!user) {
+      throw new apiError(404, "User not found");
+    }
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
+
     return { accessToken, refreshToken };
   } catch (error) {
     throw new apiError(500, error.message);
@@ -179,7 +183,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
-    .json(new apiResponse(200, {}, "User logged out successfully"));
+    .json(new apiResponse(200, null, "User logged out successfully"));
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -207,9 +211,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = generateAccessAndRefreshTokens(
       user._id
     );
+    if (!accessToken || !refreshToken) {
+      throw new apiError(
+        "There was a problem while generating access token or refresh token"
+      );
+    }
     const options = {
       httpOnly: true,
-      secure: true
+      secure: process.env.NODE_ENV === "production"
     };
 
     return res
@@ -239,7 +248,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     }
   }
   const user = await User.findById(req.user?._id);
-  const passwordStatus = user.isPasswordCorrect(oldPass);
+  const passwordStatus = await user.isPasswordCorrect(oldPass);
   if (!passwordStatus) {
     throw new apiError(401, "Unauthorized request");
   }

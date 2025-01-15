@@ -17,7 +17,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
     {
       $match: {
         $expr: {
-          $eq: ["$video", { $toObjectId: playlistId }]
+          $eq: ["$video", { $toObjectId: videoId }]
         }
       }
     },
@@ -101,7 +101,7 @@ const addComment = asyncHandler(async (req, res) => {
     {
       $match: {
         $expr: {
-          $eq: ["$owner", { $toObjectId: createdComment._id }]
+          $eq: ["$_id", { $toObjectId: createdComment._id }]
         }
       }
     },

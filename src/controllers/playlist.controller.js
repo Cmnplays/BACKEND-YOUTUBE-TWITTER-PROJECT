@@ -14,6 +14,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
     name
   });
   if (existingPlaylist) {
+    throw new apiError(400, "Playlist with this name already exists.");
     //if plaulist exists set name to name +1 or 2 or the required number
   }
   const playlist = await Playlist.create({

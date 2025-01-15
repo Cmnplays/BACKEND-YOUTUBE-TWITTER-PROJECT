@@ -132,7 +132,17 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
 const getChannelVideos = asyncHandler(async (req, res) => {
   const channelId = req.params.channelId;
-  const { limit = 10, page = 1 } = req.body;
+  let { limit = 10, page = 1 } = req.body;
+  if (
+    isNaN(Number(limit)) ||
+    isNaN(Number(page)) ||
+    Number(limit) < 1 ||
+    Number(page) < 1
+  ) {
+    limit = 10;
+    page = 1;
+  }
+
   const skip = (page - 1) * limit;
   if (!isValidObjectId(channelId)) {
     throw new apiError(400, "Invalid channel id");
@@ -183,7 +193,7 @@ const getChannelVideos = asyncHandler(async (req, res) => {
       $skip: skip
     },
     {
-      $limit: limit
+      $limit: Number(limit)
     }
   ]);
   if (!videos) {

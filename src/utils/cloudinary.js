@@ -9,13 +9,11 @@ cloudinary.config({
 export const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) {
-      console.error("file path not correct");
       return null;
     }
     const uploadRes = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto"
     });
-    console.log("file is uploaded on cloudinary ", uploadRes.url);
     fs.unlinkSync(localFilePath);
     return uploadRes;
   } catch (error) {
@@ -31,9 +29,7 @@ export const deleteFromCloudinary = async (publicFilePath) => {
   }
   const deleteRes = await cloudinary.uploader.destroy(publicFilePath);
   if (!deleteRes) {
-    console.error("Internal server Problem in deleting file from cloudinary");
   } else {
-    console.log("file is deleted from cloudinary ", publicFilePath);
     return deleteRes;
   }
 };

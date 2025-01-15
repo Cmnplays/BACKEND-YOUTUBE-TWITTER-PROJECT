@@ -1,5 +1,4 @@
-import mongoose, { isValidObjectId } from "mongoose";
-import { User } from "../models/user.model.js";
+import { isValidObjectId } from "mongoose";
 import { Subscription } from "../models/subscriptions.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
@@ -45,7 +44,6 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     throw new apiError(400, "Invalid channel id");
   }
   const subscribers = await Subscription.countDocuments({ channel: channelId });
-  console.log(subscribers);
   return res
     .status(200)
     .json(
@@ -90,7 +88,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     }
   ]);
 
-  if (!subscribedChannels === 0) {
+  if (subscribedChannels === 0) {
     return res
       .status(200)
       .json(
