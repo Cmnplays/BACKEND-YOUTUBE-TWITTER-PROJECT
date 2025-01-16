@@ -142,7 +142,6 @@ const getChannelStats = asyncHandler(async (req, res) => {
       }
     }
   ]);
-  console.log({ totalVideosNumber, totalLikesNumber });
   let channelStats = {
     totalChannelViews: totalChannelViews[0].totalViews,
     totalVideos: totalVideosNumber[0].totalVideos,

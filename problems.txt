@@ -17,8 +17,8 @@
     1.this controller is fully working without errors but i realized that i should also add a comment section in the tweet(this is optional)
 
 
-4.Tweet controller issues(SOLVED)
-    1.this controller is fully working.
+4.Tweet controller issues
+    1.i have only added get user tweets controller but i have to add get all tweets to get tweets for the tweet page.
    
 
 5.Like controller issues(SOLVED)
@@ -40,5 +40,22 @@
 9.Playlist controller issues(THIS WILL BE SOLVED WHILE MAKING FRONTEND)
     1.in add video we should just send the playlist with number of videos , we shouldn't send the videos id array or i think that i should send the aggregated videos (i will choose one of these two solutions according to how i design this feature in the frontend)
 
+
+10.Trying to add a handlePaginationFunction which can check for errors in the pagination queries
+    routes where pagination are used: 
+        1.get all videos
+        2.get all video comments
+        3.get user tweets
+        4.get watch history
+        5.get liked videos
+        6.get subscribed channels 
+        7.get channel subscribers
+        8.get channel videos(dashboard controller)
+        9.get playlists
+        10.get playlist videos by id
+        11.get all tweets(after adding this controller to tweet controllers)
+        
+
+11. I need to rewrite the logic of watch history
 
 THIS IS THE END OF TESTING THE CONTROLLERS MANUALLY. NOW IN 2 OR 3 DAYS I WILL SOLVE THESE ISSUES
