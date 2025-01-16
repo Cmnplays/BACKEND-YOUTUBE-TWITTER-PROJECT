@@ -21,6 +21,4 @@ const commentSchema = new Schema(
   }
 );
 
-commentSchema.plugin(mongooseaggreatePaginate);
-
 export const Comment = mongoose.model("Comment", commentSchema);
