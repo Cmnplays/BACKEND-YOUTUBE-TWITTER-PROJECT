@@ -41,7 +41,7 @@
     1.in add video we should just send the playlist with number of videos , we shouldn't send the videos id array or i think that i should send the aggregated videos (i will choose one of these two solutions according to how i design this feature in the frontend)
 
 
-10.Trying to add a handlePaginationFunction which can check for errors in the pagination queries
+10.Adding a handlePaginationFunction which can check for errors in the pagination queries
     routes where pagination are used: 
         1.get all videos
         2.get all video comments
