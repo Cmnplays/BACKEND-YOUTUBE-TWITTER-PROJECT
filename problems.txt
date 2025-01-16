@@ -2,34 +2,34 @@
     1.refreshAccessToken(i will confirm the working of refresh access tokens in the app because here i am having problem to test that api endpoint)
     2.update avatar problem is cannot find that path that may be postman error done by me
     3.same error with update cover image
-    4.i need to rewrite user controller integrating with views and some sort of that
 
 
 2.Video controllers issues  
     1.upload video giving error saying unable to upload file on cloudinary
     2.getting internal server in update video controller
     3.getting error in delete video controller
-    4.i need to write logic to just fetch videos in which publish status is true
-    5.i need to do any operation related to video just with the videos which are published like like operation , comment and more.
+    4.i need to do like, comment and view operation just with published video and i just need to fetch only published videos 
+
+    (AT ALL IN ISSUE 1 AND ISSUE 2 , I AM JUST GETTING CLOUDINARY ERROR SO I JUST NEED TO RESOLVE THAT)
 
 
-3.Comment controller issues
+3.Comment controller issues(THIS WILL BE SOLVED WHILE MAKING FRONTEND)
     1.this controller is fully working without errors but i realized that i should also add a comment section in the tweet(this is optional)
 
 
-4.Tweet controller issues
-    1.this controller is fully working without errors but i realized that i will have to add views with tweet which is a must.
+4.Tweet controller issues(SOLVED)
+    1.this controller is fully working.
+   
 
-
-5.Like controller issues
+5.Like controller issues(SOLVED)
     1.No issues found but i realized i am not aggregating likes with tweet and comments anywhere in the app but that is a must so i have to do that.
 
 
-6.Subscription controller issues
+6.Subscription controller issues(SOLVED)
     1.this controller is fully working.
 
 
-7.Views controller issues
+7.Views controller issues(SOLVED)
     1.this controller is fully working for now but i also have to integrate views with post(tweet).
 
 
@@ -37,7 +37,7 @@
     1.when there are no documents of total likes found then i need to send 0 as the total likes count doesnt count set number of likes to 0 if there are no documents matched.
 
 
-9.Playlist controller issues
+9.Playlist controller issues(THIS WILL BE SOLVED WHILE MAKING FRONTEND)
     1.in add video we should just send the playlist with number of videos , we shouldn't send the videos id array or i think that i should send the aggregated videos (i will choose one of these two solutions according to how i design this feature in the frontend)
 
 

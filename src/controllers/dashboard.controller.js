@@ -111,6 +111,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
       $project: {
         totalLikes: {
           $ifNull: [{ $arrayElemAt: ["$result.totalLikes", 0] }, 0]
+          //i think in the below logic that method is working but here i had to use if null . i think because of i am unwinding docs here that logic was not working here
         }
       }
     }

@@ -48,8 +48,7 @@ const createTweet = asyncHandler(async (req, res) => {
     },
     {
       $unwind: {
-        path: "$owner",
-        preserveNullAndEmptyArrays: true
+        path: "$owner"
       }
     }
   ]);
@@ -98,6 +97,36 @@ const getUserTweets = asyncHandler(async (req, res) => {
       $unwind: {
         path: "$owner",
         preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "views",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "views"
+      }
+    },
+    {
+      $addFields: {
+        views: {
+          $size: "$views"
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "likes"
+      }
+    },
+    {
+      $addFields: {
+        likes: {
+          $size: "$likes"
+        }
       }
     },
     {
@@ -165,8 +194,37 @@ const updateTweet = asyncHandler(async (req, res) => {
     },
     {
       $unwind: {
-        path: "$owner",
-        preserveNullAndEmptyArrays: true
+        path: "$owner"
+      }
+    },
+    {
+      $lookup: {
+        from: "views",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "views"
+      }
+    },
+    {
+      $addFields: {
+        views: {
+          $size: "$views"
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "likes"
+      }
+    },
+    {
+      $addFields: {
+        likes: {
+          $size: "$likes"
+        }
       }
     }
   ]);

@@ -3,7 +3,7 @@ import { apiResponse } from "../utils/apiResponse.js";
 import { apiError } from "../utils/apiError.js";
 import { View } from "../models/views.model.js";
 import { isValidObjectId } from "mongoose";
-export const increamentViews = asyncHandler(async (req, res) => {
+export const increamentVideoViews = asyncHandler(async (req, res) => {
   const videoId = req.params.videoId;
   if (!videoId || !isValidObjectId(videoId)) {
     throw new apiError(400, "Invalid video id");
@@ -23,6 +23,33 @@ export const increamentViews = asyncHandler(async (req, res) => {
   const viewerId = req.user._id;
   const view = await View.create({
     video: videoId,
+    viewer: viewerId
+  });
+  return res
+    .status(200)
+    .json(new apiResponse(200, view, "Successfully increamented video views"));
+});
+
+export const increamentTweetViews = asyncHandler(async (req, res) => {
+  const tweetId = req.params.tweetId;
+  if (!tweetId || !isValidObjectId(tweetId)) {
+    throw new apiError(400, "Invalid video id");
+  }
+  const existingTweet = await View.findOne({ tweet: tweetId });
+  if (existingTweet) {
+    return res
+      .status(200)
+      .json(
+        new apiResponse(
+          200,
+          existingTweet,
+          "Successfully found and returned video views"
+        )
+      );
+  }
+  const viewerId = req.user._id;
+  const view = await View.create({
+    tweet: tweetId,
     viewer: viewerId
   });
   return res

@@ -5,6 +5,10 @@ const viewsSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "video"
     },
+    tweet: {
+      type: Schema.Types.ObjectId,
+      ref: "tweet"
+    },
     viewer: {
       type: Schema.Types.ObjectId,
       ref: "user"

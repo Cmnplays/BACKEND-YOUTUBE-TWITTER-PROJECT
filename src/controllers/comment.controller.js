@@ -6,7 +6,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Video } from "../models/video.model.js";
 
 const getVideoComments = asyncHandler(async (req, res) => {
-  //TODO: get all comments for a video
   const { videoId } = req.params;
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
@@ -46,8 +45,22 @@ const getVideoComments = asyncHandler(async (req, res) => {
     },
     {
       $unwind: {
-        path: "$owner",
-        preserveNullAndEmptyArrays: true
+        path: "$owner"
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "comment",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        comments: {
+          $size: "$comments"
+        }
       }
     },
     {
@@ -123,8 +136,22 @@ const addComment = asyncHandler(async (req, res) => {
     },
     {
       $unwind: {
-        path: "$owner",
-        preserveNullAndEmptyArrays: true
+        path: "$owner"
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "comment",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        comments: {
+          $size: "$comments"
+        }
       }
     }
   ]);
@@ -191,8 +218,22 @@ const updateComment = asyncHandler(async (req, res) => {
     },
     {
       $unwind: {
-        path: "$owner",
-        preserveNullAndEmptyArrays: true
+        path: "$owner"
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "comment",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        comments: {
+          $size: "$comments"
+        }
       }
     }
   ]);
