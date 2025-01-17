@@ -38,8 +38,8 @@
     1.when there are no documents of total likes found then i need to send 0 as the total likes count doesnt count set number of likes to 0 if there are no documents matched.
 
 
-9.Playlist controller issues(THIS WILL BE SOLVED WHILE MAKING FRONTEND)
-    1.in add video we should just send the playlist with number of videos , we shouldn't send the videos id array or i think that i should send the aggregated videos (i will choose one of these two solutions according to how i design this feature in the frontend)
+9.Playlist controller issues(SOLVED)
+      1.this controller is fully working.
 
 
 10.Adding a handlePaginationFunction which can check for errors in the pagination queries
@@ -48,7 +48,7 @@
         2.get all video comments(DONE)
         3.get user tweets(DONE)
         4.get watch history(I WILL DO IT AFTER TESTING ITS LOGIC)
-        5.get liked videos(DONE BUT NOT CHECKED AND VERIFIED )
+        5.get liked videos(DONE)
         6.get subscribed channels (DONE) 
         7.get channel stats as i am sending subscribers document(dashboard controller)(DONE)
         8.get channel videos(dashboard controller)(DONE)
