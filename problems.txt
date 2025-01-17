@@ -17,7 +17,8 @@
     1.this controller is fully working without errors but i realized that i should also add a comment section in the tweet(this is optional)
 
 
-4.Tweet controller issues
+4.Tweet controller issues(SOLVED)
+
     1.i have only added get user tweets controller but i have to add get all tweets to get tweets for the tweet page.
    
 

@@ -3,6 +3,7 @@ import { Tweet } from "../models/tweets.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { handlePaginationParams } from "../utils/handlePaginationParams.js";
 
 const createTweet = asyncHandler(async (req, res) => {
   const content = req.body.content;
@@ -59,6 +60,88 @@ const createTweet = asyncHandler(async (req, res) => {
   return res
     .status(201)
     .json(new apiResponse(201, aggregatedTweet, "Successfully created tweet"));
+});
+
+const getAllTweets = asyncHandler(async (req, res) => {
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
+  const tweets = await Tweet.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              email: 1,
+              avatar: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $unwind: {
+        path: "$owner",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "views",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "views"
+      }
+    },
+    {
+      $addFields: {
+        views: {
+          $size: "$views"
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "likes"
+      }
+    },
+    {
+      $addFields: {
+        likes: {
+          $size: "$likes"
+        }
+      }
+    },
+    {
+      $sort: {
+        createdAt: 1
+      }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limit
+    }
+  ]);
+
+  if (tweets.length === 0) {
+    return res
+      .status(200)
+      .json(new apiResponse(200, null, "No tweets posted yet"));
+  }
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, tweets, "Successfully fetched all tweets"));
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
@@ -145,7 +228,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
   if (tweets.length === 0) {
     return res
       .status(200)
-      .json(new apiResponse(200, null, "No comments posted yet"));
+      .json(new apiResponse(200, null, "No tweets posted yet"));
   }
 
   return res
@@ -249,4 +332,4 @@ const deleteTweet = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, null, "Successfully deleted tweet"));
 });
 
-export { createTweet, getUserTweets, updateTweet, deleteTweet };
+export { createTweet, getAllTweets, getUserTweets, updateTweet, deleteTweet };
