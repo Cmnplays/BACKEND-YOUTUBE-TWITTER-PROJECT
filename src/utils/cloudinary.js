@@ -8,16 +8,19 @@ cloudinary.config({
 
 export const uploadOnCloudinary = async (localFilePath) => {
   try {
-    if (!localFilePath) {
+    if (!localFilePath || !fs.existsSync(localFilePath)) {
       return null;
     }
     const uploadRes = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto"
+      resource_type: "auto",
+      public_id: Date.now()
     });
     fs.unlinkSync(localFilePath);
     return uploadRes;
   } catch (error) {
-    fs.unlinkSync(localFilePath);
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+    }
     return null;
   }
 };
