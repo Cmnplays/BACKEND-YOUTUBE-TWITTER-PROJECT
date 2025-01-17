@@ -2,6 +2,7 @@ import { Video } from "../models/video.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { handlePaginationParams } from "../utils/handlePaginationParams.js";
 import {
   uploadOnCloudinary,
   deleteFromCloudinary
@@ -10,15 +11,9 @@ import { isValidObjectId } from "mongoose";
 import fs from "fs";
 
 const getAllVideos = asyncHandler(async (req, res) => {
-  let {
-    page = 1,
-    limit = 10,
-    query = "",
-    sortBy,
-    sortType,
-    userId
-  } = req.query;
-
+  let { page, limit, query = "", sortBy, sortType, userId } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
   if (!isNaN(page)) {
     page = 1;
   }
@@ -46,7 +41,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
   } else {
     sortType = 1;
   }
-  const skip = (page - 1) * limit;
   const videos = await Video.aggregate([
     {
       $match: {

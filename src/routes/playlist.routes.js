@@ -3,7 +3,7 @@ import {
   addVideoToPlaylist,
   createPlaylist,
   deletePlaylist,
-  getPlaylistById,
+  getPlaylistVideosById,
   getUserPlaylists,
   removeVideoFromPlaylist,
   updatePlaylist
@@ -18,7 +18,7 @@ router.route("/").post(createPlaylist);
 
 router
   .route("/:playlistId")
-  .get(getPlaylistById)
+  .get(getPlaylistVideosById)
   .patch(updatePlaylist)
   .delete(deletePlaylist);
 

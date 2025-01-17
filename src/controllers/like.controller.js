@@ -1,4 +1,4 @@
-import mongoose, { isValidObjectId, mongo } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import { Like } from "../models/like.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
@@ -6,6 +6,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Video } from "../models/video.model.js";
 import { Comment } from "../models/comment.model.js";
 import { Tweet } from "../models/tweets.model.js";
+import { handlePaginationParams } from "../utils/handlePaginationParams.js";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
@@ -111,6 +112,9 @@ const getLikedVideos = asyncHandler(async (req, res) => {
   if (!userId || !isValidObjectId(userId)) {
     throw new apiError(400, "Invalid user ID");
   }
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
   const likedVideos = await Like.aggregate([
     {
       $match: {
@@ -124,7 +128,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         from: "videos",
         localField: "video",
         foreignField: "_id",
-        as: "likedVideo",
+        as: "video",
         pipeline: [
           {
             $lookup: {
@@ -135,27 +139,22 @@ const getLikedVideos = asyncHandler(async (req, res) => {
               pipeline: [
                 {
                   $project: {
-                    avatar: 1,
-                    username: 1
+                    username: 1,
+                    email: 1,
+                    coverImage: 1
                   }
                 }
               ]
             }
           },
           {
-            $addFields: {
-              owner: {
-                $arrayElemAt: ["$owner", 0]
-              }
-            }
+            $unwind: "$owner"
           },
           {
             $project: {
               title: 1,
-              description: 1,
               thumbnail: 1,
               duration: 1,
-              views: 1,
               owner: 1
             }
           }
@@ -163,15 +162,31 @@ const getLikedVideos = asyncHandler(async (req, res) => {
       }
     },
     {
-      $addFields: {
-        likedVideo: {
-          $first: "$likedVideo"
+      $unwind: "$video"
+    },
+    {
+      $project: {
+        _id: 0,
+        likedBy: 0
+      }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limit
+    },
+    {
+      $group: {
+        _id: "$likedBy",
+        likedVideos: {
+          $push: "$$ROOT"
         }
       }
     },
     {
       $project: {
-        likedVideo: 1
+        _id: 0
       }
     }
   ]);

@@ -18,12 +18,12 @@
 
 
 4.Tweet controller issues(SOLVED)
-
     1.i have only added get user tweets controller but i have to add get all tweets to get tweets for the tweet page.
    
 
 5.Like controller issues(SOLVED)
     1.No issues found but i realized i am not aggregating likes with tweet and comments anywhere in the app but that is a must so i have to do that.
+    2.I found it now that the aggregation in get liked videos is wrong i need to rewrite and review that(DONE)
 
 
 6.Subscription controller issues(SOLVED)
@@ -44,17 +44,17 @@
 
 10.Adding a handlePaginationFunction which can check for errors in the pagination queries
     routes where pagination are used: 
-        1.get all videos
-        2.get all video comments
-        3.get user tweets
-        4.get watch history
-        5.get liked videos
-        6.get subscribed channels 
-        7.get channel subscribers
-        8.get channel videos(dashboard controller)
-        9.get playlists
-        10.get playlist videos by id
-        11.get all tweets(after adding this controller to tweet controllers)
+        1.get all videos(DONE)
+        2.get all video comments(DONE)
+        3.get user tweets(DONE)
+        4.get watch history(I WILL DO IT AFTER TESTING ITS LOGIC)
+        5.get liked videos(DONE BUT NOT CHECKED AND VERIFIED )
+        6.get subscribed channels (DONE) 
+        7.get channel stats as i am sending subscribers document(dashboard controller)(DONE)
+        8.get channel videos(dashboard controller)(DONE)
+        9.get playlists(DONE)
+        10.get playlist videos by id(DONE)
+        11.get all tweets(DONE)
         
 
 11. I need to rewrite the logic of watch history

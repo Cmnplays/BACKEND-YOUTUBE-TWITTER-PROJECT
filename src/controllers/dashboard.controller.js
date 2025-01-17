@@ -5,11 +5,13 @@ import { Like } from "../models/like.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { handlePaginationParams } from "../utils/handlePaginationParams.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
   const channelId = req.user._id;
-  const { limit = 10, page = 1 } = req.body;
-  const skip = (page - 1) * limit;
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
   const totalChannelViews = await Video.aggregate([
     {
       $match: { owner: new mongoose.Types.ObjectId(channelId) }
@@ -157,18 +159,10 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
 const getChannelVideos = asyncHandler(async (req, res) => {
   const channelId = req.params.channelId;
-  let { limit = 10, page = 1 } = req.body;
-  if (
-    isNaN(Number(limit)) ||
-    isNaN(Number(page)) ||
-    Number(limit) < 1 ||
-    Number(page) < 1
-  ) {
-    limit = 10;
-    page = 1;
-  }
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
 
-  const skip = (page - 1) * limit;
   if (!isValidObjectId(channelId)) {
     throw new apiError(400, "Invalid channel id");
   }

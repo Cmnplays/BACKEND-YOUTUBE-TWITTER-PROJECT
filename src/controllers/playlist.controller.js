@@ -4,6 +4,7 @@ import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ObjectId } from "mongodb";
+import { handlePaginationParams } from "../utils/handlePaginationParams.js";
 
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
@@ -38,6 +39,9 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
   if (!userId || !isValidObjectId(userId)) {
     throw new apiError(400, "Invalid user id");
   }
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
 
   const playlist = await Playlist.aggregate([
     {
@@ -78,6 +82,12 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         owner: 1,
         playlistThumbnail: 1
       }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limit
     }
   ]);
   if (!playlist) {
@@ -93,11 +103,15 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, playlist, "Successfully found playlist"));
 });
 
-const getPlaylistById = asyncHandler(async (req, res) => {
+const getPlaylistVideosById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
   if (!playlistId || !isValidObjectId(playlistId)) {
     throw new apiError(400, "Playlist id is required");
   }
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
+
   const playlist = await Playlist.aggregate([
     [
       {
@@ -145,6 +159,12 @@ const getPlaylistById = asyncHandler(async (req, res) => {
                 title: 1,
                 views: 1
               }
+            },
+            {
+              $skip: skip
+            },
+            {
+              $limit: limit
             }
           ]
         }
@@ -280,7 +300,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
 export {
   createPlaylist,
   getUserPlaylists,
-  getPlaylistById,
+  getPlaylistVideosById,
   addVideoToPlaylist,
   removeVideoFromPlaylist,
   deletePlaylist,

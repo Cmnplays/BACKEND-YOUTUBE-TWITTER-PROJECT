@@ -3,6 +3,7 @@ import { Subscription } from "../models/subscriptions.model.js";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { handlePaginationParams } from "../utils/handlePaginationParams.js";
 
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
@@ -56,6 +57,9 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
   if (!subscriberId || !isValidObjectId(subscriberId)) {
     throw new apiError(400, "Invalid id");
   }
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
   const subscribedChannels = await Subscription.aggregate([
     {
       $match: {
@@ -79,6 +83,12 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
           }
         ]
       }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limit
     },
     {
       $project: {

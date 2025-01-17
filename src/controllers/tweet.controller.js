@@ -149,8 +149,8 @@ const getUserTweets = asyncHandler(async (req, res) => {
   if (!userId || !isValidObjectId(userId)) {
     throw new apiError(400, "Invalid user id");
   }
-  let { page = 1, limit = 10 } = req.body;
-  const skip = (page - 1) * limit;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
   const tweets = await Tweet.aggregate([
     {
       $match: {
