@@ -5,16 +5,23 @@
 
 
 2.Video controllers issues  
-    1.upload video giving error saying unable to upload file on cloudinary
-    2.getting internal server in update video controller
-    3.getting error in delete video controller
-    4.i need to do like, comment and view operation just with published video and i just need to fetch only published videos 
+    1.upload video giving error saying unable to upload file on cloudinary(SOLVED)
+    2.getting internal server in update video controller(SOLVED)
+    3.getting error in delete video controller(SOLVED)
+    4.i need to do like, comment and view operation just with published video and i just need to fetch only published videos (NOT SOLVED)
 
     (AT ALL IN ISSUE 1 AND ISSUE 2 , I AM JUST GETTING CLOUDINARY ERROR SO I JUST NEED TO RESOLVE THAT)
 
 
-3.Comment controller issues(THIS WILL BE SOLVED WHILE MAKING FRONTEND)
+3.Comment controller issues(NOT SOLVED IN PROGRESS)
     1.this controller is fully working without errors but i realized that i should also add a comment section in the tweet(this is optional)
+    STEPS: 
+        1.ADD ADD TWEET COMMENT(DONE)
+        2.ADD GET TWEET COMMENTS BY TWEET ID(DONE)
+        3.ADD UPDATE TWEET COMMENTS(DONE)
+        4.ADD DELETE TWEET COMMENT(DONE)
+        5.SEND COMMENTS COUNT WHEN SENDING TWEET DATA(DONE)
+        6.ADD GET LIKED TWEETS IN LIKE CONTROLLER(DONE)
 
 
 4.Tweet controller issues(SOLVED)
@@ -55,8 +62,9 @@
         9.get playlists(DONE)
         10.get playlist videos by id(DONE)
         11.get all tweets(DONE)
+        12.get video comments(DONE)
         
 
-11. I need to rewrite the logic of watch history
+11. I need to rewrite the logic of watch history(rewrite get watch history controller but not tested yet)
 
 THIS IS THE END OF TESTING THE CONTROLLERS MANUALLY. NOW IN 2 OR 3 DAYS I WILL SOLVE THESE ISSUES

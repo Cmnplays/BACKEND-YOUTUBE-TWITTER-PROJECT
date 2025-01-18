@@ -160,6 +160,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
   }
   const videoCloudObj = await uploadOnCloudinary(videoLocalObj.path);
   const thumbnailCloudObj = await uploadOnCloudinary(thumbnailLocalObj.path);
+  console.log({ videoCloudObj, thumbnailCloudObj });
   if (!videoCloudObj || !thumbnailCloudObj) {
     throw new apiError(
       500,

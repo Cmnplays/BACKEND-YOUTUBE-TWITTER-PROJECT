@@ -121,6 +121,21 @@ const getAllTweets = asyncHandler(async (req, res) => {
       }
     },
     {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        comments: {
+          $size: "$comments"
+        }
+      }
+    },
+    {
       $sort: {
         createdAt: 1
       }
@@ -149,6 +164,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
   if (!userId || !isValidObjectId(userId)) {
     throw new apiError(400, "Invalid user id");
   }
+  let { limit, page } = req.query;
   let skip;
   ({ limit, page, skip } = handlePaginationParams(limit, page));
   const tweets = await Tweet.aggregate([
@@ -209,6 +225,21 @@ const getUserTweets = asyncHandler(async (req, res) => {
       $addFields: {
         likes: {
           $size: "$likes"
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        comments: {
+          $size: "$comments"
         }
       }
     },
@@ -307,6 +338,21 @@ const updateTweet = asyncHandler(async (req, res) => {
       $addFields: {
         likes: {
           $size: "$likes"
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "comments"
+      }
+    },
+    {
+      $addFields: {
+        comments: {
+          $size: "$comments"
         }
       }
     }

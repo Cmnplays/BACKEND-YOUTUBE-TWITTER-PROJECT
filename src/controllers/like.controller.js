@@ -202,4 +202,103 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     );
 });
 
-export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
+const getLikedTweets = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  console.log(userId);
+  if (!userId || !isValidObjectId(userId)) {
+    throw new apiError(400, "Invalid user ID");
+  }
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
+  const likedTweets = await Like.aggregate([
+    {
+      $match: {
+        $expr: {
+          $eq: ["$likedBy", { $toObjectId: userId }]
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: "tweets",
+        localField: "tweet",
+        foreignField: "_id",
+        as: "tweet",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    username: 1,
+                    email: 1,
+                    coverImage: 1
+                  }
+                }
+              ]
+            }
+          },
+          {
+            $unwind: "$owner"
+          },
+          {
+            $project: {
+              content: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $unwind: "$tweet"
+    },
+    {
+      $project: {
+        _id: 0,
+        likedBy: 0
+      }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limit
+    },
+    {
+      $group: {
+        _id: "$likedBy",
+        likedTweets: {
+          $push: "$$ROOT"
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 0
+      }
+    }
+  ]);
+  if (!likedTweets || likedTweets.length === 0) {
+    return res
+      .status(200)
+      .json(new apiResponse(200, [], "No liked videos found"));
+  }
+  return res
+    .status(200)
+    .json(
+      new apiResponse(200, likedTweets, "Liked videos successfully returned")
+    );
+});
+
+export {
+  toggleCommentLike,
+  toggleTweetLike,
+  toggleVideoLike,
+  getLikedVideos,
+  getLikedTweets
+};

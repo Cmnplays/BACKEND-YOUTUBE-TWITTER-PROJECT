@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { apiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
+import { View } from "../models/views.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken";
@@ -323,7 +324,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
 });
 
 const updateCoverImage = asyncHandler(async (req, res) => {
-  const coverImageLocalPath = req.file?.path;
+  const coverImageLocalPath = req.file.coverImage?.path;
   if (!coverImageLocalPath) {
     throw new apiError(400, "coverImage file missing");
   }
@@ -431,23 +432,28 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 
 const getWatchHistory = asyncHandler(async (req, res) => {
   const userId = req.user._id;
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
   if (!userId || !mongoose.isValidObjectId(userId)) {
     throw new apiError(400, "Invalid user id");
   }
-  const user = await User.aggregate([
+  const watchHistory = await View.aggregate([
     {
-      $match: {
-        $expr: {
-          $eq: ["$_id", { $toObjectId: userId }]
-        }
-      }
+      viewer: new mongoose.Types.ObjectId(userId)
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: limit
     },
     {
       $lookup: {
         from: "videos",
-        localField: "watchHistory",
+        localField: "video",
         foreignField: "_id",
-        as: "watchHistory",
+        as: "video",
         pipeline: [
           {
             $lookup: {
@@ -458,8 +464,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
               pipeline: [
                 {
                   $project: {
-                    fullName: 1,
                     username: 1,
+                    email: 1,
                     avatar: 1
                   }
                 }
@@ -467,27 +473,72 @@ const getWatchHistory = asyncHandler(async (req, res) => {
             }
           },
           {
-            $addFields: {
-              owner: {
-                $first: "$owner"
-              }
+            $project: {
+              title: 1,
+              thumbnail: 1,
+              owner: 1,
+              duration: 1
             }
           }
         ]
       }
+    },
+    {
+      $project: {
+        video: 1
+      }
     }
   ]);
-  if (!user) {
-    throw new apiError(500, "Error while getting user");
+  // const user = await User.aggregate([
+  //   {
+  //     $match: {
+  //       $expr: {
+  //         $eq: ["$_id", { $toObjectId: userId }]
+  //       }
+  //     }
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "videos",
+  //       localField: "watchHistory",
+  //       foreignField: "_id",
+  //       as: "watchHistory",
+  //       pipeline: [
+  //         {
+  //           $lookup: {
+  //             from: "users",
+  //             localField: "owner",
+  //             foreignField: "_id",
+  //             as: "owner",
+  //             pipeline: [
+  //               {
+  //                 $project: {
+  //                   fullName: 1,
+  //                   username: 1,
+  //                   avatar: 1
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         },
+  //         {
+  //           $addFields: {
+  //             owner: {
+  //               $first: "$owner"
+  //             }
+  //           }
+  //         }
+  //       ]
+  //     }
+  //   }
+  // ]);
+  if (!watchHistory) {
+    throw new apiError(500, "Error while getting watchHistory");
   }
   return res
     .status(200)
     .json(
-      new apiResponse(
-        200,
-        user[0].watchHistory,
-        "Successfully sent watch history"
-      )
+      new apiResponse(200, watchHistory, "Successfully sent watch history")
     );
 });
 
