@@ -13,7 +13,8 @@ import {
   updateAccountDetails,
   updateAvatar,
   getUserChannelProfile,
-  getWatchHistory
+  getWatchHistory,
+  updateCoverImage
 } from "../controllers/user.controller.js";
 
 router.route("/register").post(
@@ -44,10 +45,12 @@ router.route("/current-user").post(verifyJWT, getCurrentUser);
 router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 
 router
-  .route("/update-avater")
+  .route("/update-avatar")
   .patch(verifyJWT, upload.single("avatar"), updateAvatar);
 
-router.route("/cover-image").patch(verifyJWT, upload.single("coverImage"));
+router
+  .route("/cover-image")
+  .patch(verifyJWT, upload.single("coverImage"), updateCoverImage);
 
 router.route("/channel/:username").get(verifyJWT, getUserChannelProfile);
 

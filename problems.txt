@@ -1,5 +1,9 @@
 **********SOLVED ISSUES***********
 
+1.User controllers issues
+    2.update avatar problem is "path not found" that may be postman error done by me(SOLVED)
+    3.same error with update cover image(SOLVED)
+
 
 2.Video controllers issues  
     1.upload video giving error saying unable to upload file on cloudinary(SOLVED)
@@ -76,14 +80,5 @@
 
 
 **********UNSOLVED ISSUES***********
-
-1.User controllers issues
-    2.update avatar problem is "path not found" that may be postman error done by me
-    3.same error with update cover image
-
-
-   
-
-
 
 

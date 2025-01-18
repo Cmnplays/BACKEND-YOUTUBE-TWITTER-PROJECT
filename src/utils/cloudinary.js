@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import { apiError } from "../utils/apiError.js";
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -15,12 +16,16 @@ export const uploadOnCloudinary = async (localFilePath) => {
       resource_type: "auto",
       public_id: Date.now()
     });
+    if (!uploadRes) {
+      throw new apiError(500, "error");
+    }
     fs.unlinkSync(localFilePath);
     return uploadRes;
   } catch (error) {
     if (fs.existsSync(localFilePath)) {
       fs.unlinkSync(localFilePath);
     }
+    console.log(error);
     return null;
   }
 };

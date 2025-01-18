@@ -304,19 +304,17 @@ const updateAvatar = asyncHandler(async (req, res) => {
   if (!avatarCloudinaryPath) {
     throw new apiError(500, "Error while uploading avatar on cloudinary");
   }
-  const updatedUser = await user
-    .findByIdAndUpdate(
-      req.user?._id,
-      {
-        $set: {
-          avatar: avatarCloudinaryPath.url
-        }
-      },
-      {
-        new: true
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        avatar: avatarCloudinaryPath.url
       }
-    )
-    .select("-password -refreshToken");
+    },
+    {
+      new: true
+    }
+  ).select("-password -refreshToken");
 
   res
     .status(200)
@@ -324,7 +322,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
 });
 
 const updateCoverImage = asyncHandler(async (req, res) => {
-  const coverImageLocalPath = req.file.coverImage?.path;
+  const coverImageLocalPath = req.file.path;
   if (!coverImageLocalPath) {
     throw new apiError(400, "coverImage file missing");
   }
@@ -339,22 +337,22 @@ const updateCoverImage = asyncHandler(async (req, res) => {
   }
   const coverImageCloudinaryPath =
     await uploadOnCloudinary(coverImageLocalPath);
+  console.log(coverImageCloudinaryPath);
+
   if (!coverImageCloudinaryPath) {
     throw new apiError(500, "Error while uploading avatar on cloudinary");
   }
-  const updatedUser = await user
-    .findByIdAndUpdate(
-      req.user?._id,
-      {
-        $set: {
-          avatar: coverImageCloudinaryPath.url
-        }
-      },
-      {
-        new: true
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        avatar: coverImageCloudinaryPath.url
       }
-    )
-    .select("-password -refreshToken");
+    },
+    {
+      new: true
+    }
+  ).select("-password -refreshToken");
 
   res
     .status(200)
