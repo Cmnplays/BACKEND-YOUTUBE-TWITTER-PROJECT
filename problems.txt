@@ -1,7 +1,4 @@
-1.User controllers issues
-    1.refreshAccessToken(i will confirm the working of refresh access tokens in the app because here i am having problem to test that api endpoint)
-    2.update avatar problem is cannot find that path that may be postman error done by me
-    3.same error with update cover image
+**********SOLVED ISSUES***********
 
 
 2.Video controllers issues  
@@ -10,11 +7,9 @@
     3.getting error in delete video controller(SOLVED)
     4.i need to do like, comment and view operation just with published video and i just need to fetch only published videos (NOT SOLVED)
 
-    (AT ALL IN ISSUE 1 AND ISSUE 2 , I AM JUST GETTING CLOUDINARY ERROR SO I JUST NEED TO RESOLVE THAT)
 
-
-3.Comment controller issues(NOT SOLVED IN PROGRESS)
-    1.this controller is fully working without errors but i realized that i should also add a comment section in the tweet(this is optional)
+3.Comment controller issues(SOLVED)
+    1.this controller is fully working without errors but i realized that i should also add a comment section in the tweet(DONE)
     STEPS: 
         1.ADD ADD TWEET COMMENT(DONE)
         2.ADD GET TWEET COMMENTS BY TWEET ID(DONE)
@@ -49,12 +44,12 @@
       1.this controller is fully working.
 
 
-10.Adding a handlePaginationFunction which can check for errors in the pagination queries
+10.Adding a handlePaginationFunction which can check for errors in the pagination queries(SOLVED)
     routes where pagination are used: 
         1.get all videos(DONE)
         2.get all video comments(DONE)
         3.get user tweets(DONE)
-        4.get watch history(I WILL DO IT AFTER TESTING ITS LOGIC)
+        4.get watch history(DONE)
         5.get liked videos(DONE)
         6.get subscribed channels (DONE) 
         7.get channel stats as i am sending subscribers document(dashboard controller)(DONE)
@@ -63,8 +58,32 @@
         10.get playlist videos by id(DONE)
         11.get all tweets(DONE)
         12.get video comments(DONE)
-        
 
-11. I need to rewrite the logic of watch history(rewrite get watch history controller but not tested yet)
 
-THIS IS THE END OF TESTING THE CONTROLLERS MANUALLY. NOW IN 2 OR 3 DAYS I WILL SOLVE THESE ISSUES
+
+
+
+**********TESTING ISSUES***********
+
+11. I need to rewrite the logic of watch history(rewrite get watch history controller but I will test it while making frontend)
+
+
+1.User controllers issues
+    1.refreshAccessToken(i will confirm the working of refresh access tokens in the app because here i am having problem to test that api endpoint)
+
+
+
+
+
+**********UNSOLVED ISSUES***********
+
+1.User controllers issues
+    2.update avatar problem is "path not found" that may be postman error done by me
+    3.same error with update cover image
+
+
+   
+
+
+
+
