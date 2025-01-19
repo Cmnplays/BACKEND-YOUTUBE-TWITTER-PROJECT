@@ -64,13 +64,13 @@
         12.get video comments(DONE)
 
 
+11. I need to rewrite the logic of watch history(DONE AND TESTED)
+
+
 
 
 
 **********TESTING ISSUES***********
-
-11. I need to rewrite the logic of watch history(rewrite get watch history controller but I will test it while making frontend)
-
 
 1.User controllers issues
     1.refreshAccessToken(i will confirm the working of refresh access tokens in the app because here i am having problem to test that api endpoint)

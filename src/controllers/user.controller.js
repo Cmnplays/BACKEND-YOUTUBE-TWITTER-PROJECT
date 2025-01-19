@@ -6,8 +6,8 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
+import { handlePaginationParams } from "../utils/handlePaginationParams.js";
 import mongoose from "mongoose";
-
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -437,55 +437,72 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     throw new apiError(400, "Invalid user id");
   }
   const watchHistory = await View.aggregate([
-    {
-      viewer: new mongoose.Types.ObjectId(userId)
-    },
-    {
-      $skip: skip
-    },
-    {
-      $limit: limit
-    },
-    {
-      $lookup: {
-        from: "videos",
-        localField: "video",
-        foreignField: "_id",
-        as: "video",
-        pipeline: [
-          {
-            $lookup: {
-              from: "users",
-              localField: "owner",
-              foreignField: "_id",
-              as: "owner",
-              pipeline: [
-                {
-                  $project: {
-                    username: 1,
-                    email: 1,
-                    avatar: 1
+    [
+      {
+        $match: { viewer: new mongoose.Types.ObjectId(userId) }
+      },
+      {
+        $lookup: {
+          from: "videos",
+          localField: "video",
+          foreignField: "_id",
+          as: "video",
+          pipeline: [
+            {
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                  {
+                    $project: {
+                      avatar: 1,
+                      username: 1
+                    }
                   }
-                }
-              ]
+                ]
+              }
+            },
+            {
+              $project: {
+                thumbnail: 1,
+                title: 1,
+                duration: 1,
+                views: 1,
+                owner: 1
+              }
+            },
+            {
+              $unwind: "$owner"
             }
-          },
-          {
-            $project: {
-              title: 1,
-              thumbnail: 1,
-              owner: 1,
-              duration: 1
-            }
+          ]
+        }
+      },
+      {
+        $unwind: "$video"
+      },
+      {
+        $project: {
+          video: 1,
+          _id: 0
+        }
+      },
+      {
+        $group: {
+          _id: "$viewer",
+          watchHistory: {
+            $push: "$$ROOT"
           }
-        ]
+        }
+      },
+      {
+        $project: {
+          watchHistory: 1,
+          _id: 0
+        }
       }
-    },
-    {
-      $project: {
-        video: 1
-      }
-    }
+    ]
   ]);
   // const user = await User.aggregate([
   //   {
