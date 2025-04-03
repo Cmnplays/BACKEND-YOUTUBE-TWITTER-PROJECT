@@ -8,7 +8,9 @@ export const increamentVideoViews = asyncHandler(async (req, res) => {
   if (!videoId || !isValidObjectId(videoId)) {
     throw new apiError(400, "Invalid video id");
   }
-  const existingView = await View.findOne({ video: videoId });
+  const viewerId = req.user._id;
+
+  const existingView = await View.findOne({ video: videoId, viewer: viewerId });
   if (existingView) {
     return res
       .status(200)
@@ -20,7 +22,6 @@ export const increamentVideoViews = asyncHandler(async (req, res) => {
         )
       );
   }
-  const viewerId = req.user._id;
   const view = await View.create({
     video: videoId,
     viewer: viewerId
@@ -35,7 +36,12 @@ export const increamentTweetViews = asyncHandler(async (req, res) => {
   if (!tweetId || !isValidObjectId(tweetId)) {
     throw new apiError(400, "Invalid video id");
   }
-  const existingTweet = await View.findOne({ tweet: tweetId });
+  const viewerId = req.user._id;
+
+  const existingTweet = await View.findOne({
+    tweet: tweetId,
+    viewer: viewerId
+  });
   if (existingTweet) {
     return res
       .status(200)
@@ -47,7 +53,6 @@ export const increamentTweetViews = asyncHandler(async (req, res) => {
         )
       );
   }
-  const viewerId = req.user._id;
   const view = await View.create({
     tweet: tweetId,
     viewer: viewerId
