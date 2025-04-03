@@ -195,7 +195,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new apiError(401, "Unauthorized request");
   }
   try {
-    const decodedTokenInfo = await jwt.verify(
+    const decodedTokenInfo = jwt.verify(
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
@@ -269,7 +269,7 @@ const getCurrentUser = asyncHandler((req, res) => {
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullName, username, email } = req.body;
   if (!(fullName || username || email)) {
-    throw new apiError(400, "Any one filed is required");
+    throw new apiError(400, "Any one field is required");
   }
   let data = {};
   if (fullName) data.fullName = fullName;
@@ -298,7 +298,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
   const oldCloudinaryAvatarPath = user.avatar;
   const deleteAvatarRes = await deleteFromCloudinary(oldCloudinaryAvatarPath);
   if (!deleteAvatarRes) {
-    throw new apiError(500, " Unable to delete avatar from cloudinary");
+    throw new apiError(500, "Unable to delete avatar from cloudinary");
   }
   const avatarCloudinaryPath = await uploadOnCloudinary(avatarLocalPath);
   if (!avatarCloudinaryPath) {
@@ -420,7 +420,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   if (!channel?.length) {
     throw new apiError(404, "Channel does not exist.");
   }
-  console.log(channel);
   return res
     .status(200)
     .json(
@@ -465,12 +464,25 @@ const getWatchHistory = asyncHandler(async (req, res) => {
               }
             },
             {
+              $lookup: {
+                from: "views",
+                localField: "_id",
+                foreignField: "video",
+                as: "views"
+              }
+            },
+            {
+              $addFields: {
+                views: { $size: "$views" }
+              }
+            },
+            {
               $project: {
                 thumbnail: 1,
                 title: 1,
                 duration: 1,
-                views: 1,
-                owner: 1
+                owner: 1,
+                views: 1
               }
             },
             {
@@ -489,21 +501,25 @@ const getWatchHistory = asyncHandler(async (req, res) => {
         }
       },
       {
-        $group: {
-          _id: "$viewer",
-          watchHistory: {
-            $push: "$$ROOT"
-          }
-        }
+        $skip: skip
       },
       {
-        $project: {
-          watchHistory: 1,
-          _id: 0
+        $limit: limit
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$video"
         }
       }
+      // {
+      //   $project: {
+      //     watchHistory: 1,
+      //     _id: 1
+      //   }
+      // }
     ]
   ]);
+  //*THIS BELOW LOGIC IS SUITABLE WHEN WE JUST PUSH THE VIDEO ID IN WATCHHISTORY IF WATCHED BY THE USER. BUT IN THIS CASE WHEN THE USER WILL HAVE WATCHED ALOT OF VIDEOS, THEN THE ARRAY MIGHT BE VERY BIG.
   // const user = await User.aggregate([
   //   {
   //     $match: {
