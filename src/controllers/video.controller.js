@@ -8,6 +8,7 @@ import {
   deleteFromCloudinary
 } from "../utils/cloudinary.js";
 import { isValidObjectId } from "mongoose";
+import mongoose from "mongoose";
 import fs from "fs";
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -357,11 +358,77 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, video, "Successfully toggled publish status"));
 });
 
+const getChannelVideos = asyncHandler(async (req, res) => {
+  const channelId = req.params.channelId;
+  let { limit, page } = req.query;
+  let skip;
+  ({ limit, page, skip } = handlePaginationParams(limit, page));
+  if (!isValidObjectId(channelId)) {
+    throw new apiError(400, "Invalid channel id");
+  }
+
+  const videos = await Video.aggregate([
+    {
+      $match: {
+        owner: new mongoose.mongo.ObjectId(channelId)
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              email: 1,
+              avatar: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $unwind: "$owner"
+    },
+    {
+      $project: {
+        thumbnail: 1,
+        title: 1,
+        description: 1,
+        duration: 1,
+        views: 1,
+        owner: 1
+      }
+    },
+    {
+      $sort: {
+        createdAt: 1
+      }
+    },
+    {
+      $skip: skip
+    },
+    {
+      $limit: Number(limit)
+    }
+  ]);
+  if (!videos) {
+    throw new apiError(400, "No videos uploaded yet");
+  }
+  return res
+    .status(200)
+    .json(new apiResponse(200, videos, "Successfully sent videos"));
+});
+
 export {
   getAllVideos,
   publishAVideo,
   getVideoById,
   updateVideo,
   deleteVideo,
-  togglePublishStatus
+  togglePublishStatus,
+  getChannelVideos
 };
