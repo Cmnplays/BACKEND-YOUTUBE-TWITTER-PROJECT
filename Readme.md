@@ -1,6 +1,10 @@
 # 📺 Social Video App API Documentation
 
-Base URL: `http://localhost:3000/api/v1/`
+This API provides endpoints for handling user registrations, video uploads, tweets, comments, likes, and subscriptions. It is designed to allow interactions with videos, tweets, and other user-generated content in a social media-style app.
+
+## Base URL
+
+`http://localhost:3000/api/v1/`
 
 ---
 
@@ -8,65 +12,69 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Register a User
 
-* **POST** `/users/register`
-* **Body:** `form-data`
-
-  * `username`, `email`, `fullName`, `password`, `avatar`, `coverImage`
+- **POST** `/users/register`
+- **Body:** `form-data`
+  - `username` (string, required)
+  - `email` (string, required)
+  - `fullName` (string, required)
+  - `password` (string, required)
+  - `avatar` (file, required)
+  - `coverImage` (file, optional)
 
 ### 🔹 Login
 
-* **POST** `/users/login`
-* **Body:** `JSON`
-
-  * `email`, `password`
+- **POST** `/users/login`
+- **Body:** `JSON`
+  - `email` (string, required)
+  - `password` (string, required)
 
 ### 🔹 Logout
 
-* **POST** `/users/logout`
+- **POST** `/users/logout`
 
 ### 🔹 Refresh Access Token
 
-* **POST** `/users/refresh-token`
+- **POST** `/users/refresh-token`
 
 ### 🔹 Change Password
 
-* **POST** `/users/change-password`
-* **Body:** `urlencoded`
-
-  * `oldPass`, `newPass`, `confirmPass`
+- **POST** `/users/change-password`
+- **Body:** `urlencoded`
+  - `oldPass` (string, required)
+  - `newPass` (string, required)
+  - `confirmPass` (string, required)
 
 ### 🔹 Get Current User
 
-* **POST** `/users/current-user`
+- **POST** `/users/current-user`
 
 ### 🔹 Update Account Details
 
-* **PATCH** `/users/update-account`
-* **Body:** `JSON`
-
-  * `fullName`, `email`, `username`
+- **PATCH** `/users/update-account`
+- **Body:** `JSON`
+  - `fullName` (string, optional)
+  - `email` (string, optional)
+  - `username` (string, optional)
 
 ### 🔹 Update Cover Image
 
-* **PATCH** `/users/cover-image`
-* **Body:** `form-data`
-
-  * `coverImage`
+- **PATCH** `/users/cover-image`
+- **Body:** `form-data`
+  - `coverImage` (file, required)
 
 ### 🔹 Update Avatar
 
-* **PATCH** `/users/update-avatar`
-* **Body:** `form-data`
-
-  * `avatar`
+- **PATCH** `/users/update-avatar`
+- **Body:** `form-data`
+  - `avatar` (file, required)
 
 ### 🔹 Get User Channel
 
-* **GET** `/users/channel/:username`
+- **GET** `/users/channel/:username`
 
 ### 🔹 Get Watch History
 
-* **GET** `/users/history`
+- **GET** `/users/history`
 
 ---
 
@@ -74,34 +82,41 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Upload Video
 
-* **POST** `/video`
-* **Body:** `form-data`
-
-  * `title`, `description`, `thumbnail`, `videoFile`
+- **POST** `/video`
+- **Body:** `form-data`
+  - `title` (string, required)
+  - `description` (string, required)
+  - `thumbnail` (file, required)
+  - `videoFile` (file, required)
 
 ### 🔹 Get All Videos
 
-* **GET** `/video`
-* **Query:** `query`, `sortBy`, `sortType`, `userid`
+- **GET** `/video`
+- **Query Parameters:**
+  - `query` (string, optional)
+  - `sortBy` (string, optional)
+  - `sortType` (string, optional)
+  - `userId` (string, optional)
 
 ### 🔹 Get Video by ID
 
-* **GET** `/video/:videoId`
+- **GET** `/video/:videoId`
 
 ### 🔹 Update Video Details
 
-* **PATCH** `/video/:videoId`
-* **Body:** `form-data`
-
-  * `title`, `description`, `thumbnail`
+- **PATCH** `/video/:videoId`
+- **Body:** `form-data`
+  - `title` (string, optional)
+  - `description` (string, optional)
+  - `thumbnail` (file, optional)
 
 ### 🔹 Delete Video
 
-* **DELETE** `/video/:videoId`
+- **DELETE** `/video/:videoId`
 
 ### 🔹 Toggle Publish Status
 
-* **PATCH** `/video/toggle/publish/:videoId`
+- **PATCH** `/video/toggle/publish/:videoId`
 
 ---
 
@@ -109,23 +124,29 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Toggle Video Like
 
-* **POST** `/likes/toggle/v/:videoId`
+- **POST** `/likes/toggle/v/:videoId`
 
 ### 🔹 Toggle Tweet Like
 
-* **POST** `/likes/toggle/t/:tweetId`
+- **POST** `/likes/toggle/t/:tweetId`
 
 ### 🔹 Toggle Comment Like
 
-* **POST** `/likes/toggle/c/:commentId`
+- **POST** `/likes/toggle/c/:commentId`
 
 ### 🔹 Get Liked Videos
 
-* **GET** `/likes/videos?limit=3&page=1`
+- **GET** `/likes/videos`
+- **Query Parameters:**
+  - `limit` (number, optional)
+  - `page` (number, optional)
 
 ### 🔹 Get Liked Tweets
 
-* **GET** `/likes/tweets?limit=2&page=1`
+- **GET** `/likes/tweets`
+- **Query Parameters:**
+  - `limit` (number, optional)
+  - `page` (number, optional)
 
 ---
 
@@ -133,39 +154,43 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Add Comment to Video
 
-* **POST** `/comments/:videoId`
-* **Body:** `urlencoded` → `content`
+- **POST** `/comments/:videoId`
+- **Body:** `urlencoded`
+  - `content` (string, required)
 
 ### 🔹 Delete Comment
 
-* **DELETE** `/comments/c/:commentId`
+- **DELETE** `/comments/c/:commentId`
 
 ### 🔹 Update Comment
 
-* **PATCH** `/comments/c/:commentId`
-* **Body:** `urlencoded` → `newContent`
+- **PATCH** `/comments/c/:commentId`
+- **Body:** `urlencoded`
+  - `newContent` (string, required)
 
 ### 🔹 Get Video Comments
 
-* **GET** `/comments/:videoId`
+- **GET** `/comments/:videoId`
 
 ### 🔹 Add Tweet Comment
 
-* **POST** `/comments/t/:tweetId`
-* **Body:** `urlencoded` → `content`
+- **POST** `/comments/t/:tweetId`
+- **Body:** `urlencoded`
+  - `content` (string, required)
 
 ### 🔹 Get Tweet Comments
 
-* **GET** `/comments/t/:tweetId`
+- **GET** `/comments/t/:tweetId`
 
 ### 🔹 Delete Tweet Comment
 
-* **DELETE** `/comment/t/:tweetId`
+- **DELETE** `/comments/t/:commentId`
 
 ### 🔹 Update Tweet Comment
 
-* **PATCH** `/comments/t/:commentId`
-* **Body:** `urlencoded` → `newContent`
+- **PATCH** `/comments/t/:commentId`
+- **Body:** `urlencoded`
+  - `newContent` (string, required)
 
 ---
 
@@ -173,25 +198,30 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Add Tweet
 
-* **POST** `/tweets/`
-* **Body:** `urlencoded` → `content`
+- **POST** `/tweets/`
+- **Body:** `urlencoded`
+  - `content` (string, required)
 
 ### 🔹 Get User Tweets
 
-* **POST** `/tweets/user/:userId`
+- **POST** `/tweets/user/:userId`
 
 ### 🔹 Update Tweet
 
-* **PATCH** `/tweets/:tweetId`
-* **Body:** `urlencoded` → `newContent`
+- **PATCH** `/tweets/:tweetId`
+- **Body:** `urlencoded`
+  - `newContent` (string, required)
 
 ### 🔹 Delete Tweet
 
-* **DELETE** `/tweets/:tweetId`
+- **DELETE** `/tweets/:tweetId`
 
 ### 🔹 Get All Tweets
 
-* **GET** `/tweets/?limit=5&page=1`
+- **GET** `/tweets`
+- **Query Parameters:**
+  - `limit` (number, optional)
+  - `page` (number, optional)
 
 ---
 
@@ -199,15 +229,15 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Toggle Subscription
 
-* **POST** `/subscription/c/:channelId`
+- **POST** `/subscription/c/:channelId`
 
 ### 🔹 Get Channel Subscribers
 
-* **GET** `/subscription/c/:channelId`
+- **GET** `/subscription/c/:channelId`
 
 ### 🔹 Get Subscribed Channels
 
-* **GET** `/subscription/u/:userId`
+- **GET** `/subscription/u/:userId`
 
 ---
 
@@ -215,28 +245,36 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Create Playlist
 
-* **POST** `/playlist/`
-* **Body:** `urlencoded` → `name`, `description`
+- **POST** `/playlist/`
+- **Body:** `urlencoded`
+  - `name` (string, required)
+  - `description` (string, required)
 
 ### 🔹 Get User Playlists
 
-* **GET** `/playlist/user/:userId?limit=3&page=1`
+- **GET** `/playlist/user/:userId`
+- **Query Parameters:**
+  - `limit` (number, optional)
+  - `page` (number, optional)
 
 ### 🔹 Add Video to Playlist
 
-* **PATCH** `/playlist/add/:videoId/:playlistId`
+- **PATCH** `/playlist/add/:videoId/:playlistId`
 
 ### 🔹 Remove Video from Playlist
 
-* **PATCH** `/playlist/remove/:videoId/:playlistId`
+- **PATCH** `/playlist/remove/:videoId/:playlistId`
 
 ### 🔹 Delete Playlist
 
-* **DELETE** `/playlist/:playlistId`
+- **DELETE** `/playlist/:playlistId`
 
 ### 🔹 Get Playlist Videos
 
-* **GET** `/playlist/:playlistId?limit=1&page=1`
+- **GET** `/playlist/:playlistId`
+- **Query Parameters:**
+  - `limit` (number, optional)
+  - `page` (number, optional)
 
 ---
 
@@ -244,12 +282,13 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Get Channel Videos
 
-* **POST** `/dashboard/videos/:channelId`
-* **Query/Body:** Optional `limit`
+- **POST** `/dashboard/videos/:channelId`
+- **Query Parameters:**
+  - `limit` (number, optional)
 
 ### 🔹 Get Channel Stats
 
-* **GET** `/dashboard/stats`
+- **GET** `/dashboard/stats`
 
 ---
 
@@ -257,16 +296,22 @@ Base URL: `http://localhost:3000/api/v1/`
 
 ### 🔹 Increment Video Views
 
-* **GET** `/views/v/:videoId`
+- **GET** `/views/v/:videoId`
 
 ### 🔹 Increment Tweet Views
 
-* **GET** `/views/t/:tweetId`
+- **GET** `/views/t/:tweetId`
 
 ---
 
-✅ All routes follow RESTful conventions.
-🔒 Use authentication (JWT) where required.
-🛠 Built with Express, Mongoose, Multer, and more.
+## 🛠 Built With
 
-> **Note:** File paths shown in Postman should be replaced by actual file uploads via form-data when testing via clients like Postman or frontend.
+- **Express.js** for server-side logic
+- **Mongoose** for MongoDB interactions
+- **Multer** for file uploads
+- **Cloudinary** for media storage
+- **JWT** for authentication
+
+---
+
+> **Note:** Use `form-data` for file uploads and `urlencoded` or `JSON` for other data types when testing via Postman or frontend.
