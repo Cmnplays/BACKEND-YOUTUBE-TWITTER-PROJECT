@@ -231,6 +231,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     );
     if (!accessToken || !refreshToken) {
       throw new apiError(
+        500,
         "There was a problem while generating access token or refresh token"
       );
     }
@@ -241,6 +242,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
       .json(
